@@ -359,8 +359,7 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.2)}
 .you-row{background:linear-gradient(90deg,#EFF6FF,#DBEAFE);border-radius:8px;padding:6px 10px;border:1px solid #BFDBFE}
 
 /* map */
-.map-wrap{border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#EFF6FF,var(--foam));padding:12px;border:2px solid var(--border)}
-.map-wrap svg{width:100%;height:auto}
+
 
 /* recs */
 .rec-item{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:linear-gradient(135deg,var(--foam),var(--bg));margin-bottom:9px;border:1px solid var(--border)}
@@ -425,6 +424,14 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.2)}
 .ic-sky{background:linear-gradient(135deg,#E0F2FE,#BAE6FD)}
 .ic-indigo{background:linear-gradient(135deg,#E0E7FF,#C7D2FE)}
 .ic-brown{background:linear-gradient(135deg,#FEF9C3,#FEF08A)}
+
+/* ── GLASS ── */
+.glass-wrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+.glass-label{font-size:.75rem;font-weight:800;color:var(--muted);text-align:center;max-width:64px;line-height:1.3}
+.glass-val{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.5px;color:var(--ocean);text-align:center}
+.glass-svg{filter:drop-shadow(0 4px 10px rgba(0,119,182,.18))}
+.glass-you .glass-label{color:var(--red)}
+.glass-you .glass-val{color:var(--red)}
 
 footer{
   text-align:center;padding:20px 20px 60px;
@@ -764,26 +771,11 @@ footer a{color:var(--ocean);text-decoration:none}
     <h3>🌍 Onde você está no mundo</h3>
     <div class="gauge-wrap"><svg id="gaugesvg" viewBox="0 0 300 170" xmlns="http://www.w3.org/2000/svg"></svg><div class="gauge-lbl" id="gaugeLbl"></div></div>
     <div style="margin:16px 0 12px"><div id="countryBars"></div></div>
-    <div class="map-wrap">
-      <svg id="worldmap" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
-        <rect x="0" y="0" width="800" height="400" fill="#E0F2FE" rx="10"/>
-        <rect id="mr-na"      x="40"  y="40"  width="140" height="110" rx="10" fill="#ccc" opacity=".9"/>
-        <rect id="mr-sa"      x="120" y="165" width="100" height="110" rx="10" fill="#ccc" opacity=".9"/>
-        <rect id="mr-europe"  x="340" y="40"  width="90"  height="80"  rx="10" fill="#ccc" opacity=".9"/>
-        <rect id="mr-africa"  x="330" y="130" width="110" height="130" rx="10" fill="#ccc" opacity=".9"/>
-        <rect id="mr-asia"    x="440" y="40"  width="160" height="140" rx="10" fill="#ccc" opacity=".9"/>
-        <rect id="mr-oceania" x="580" y="200" width="100" height="80"  rx="10" fill="#ccc" opacity=".9"/>
-        <text x="110" y="100" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle">América do Norte</text>
-        <text x="170" y="228" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle">América do Sul</text>
-        <text x="385" y="84"  font-size="10" fill="#fff" font-weight="bold" text-anchor="middle">Europa</text>
-        <text x="385" y="200" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle">África</text>
-        <text x="520" y="114" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle">Ásia</text>
-        <text x="630" y="244" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle">Oceania</text>
-        <ellipse id="mr-brasil" cx="165" cy="220" rx="22" ry="18" fill="#FFB703"/>
-        <text x="165" y="224" font-size="9" fill="#fff" font-weight="bold" text-anchor="middle">BR</text>
-        <circle id="mr-voce" cx="0" cy="0" r="12" fill="#EF233C" stroke="#fff" stroke-width="2.5" opacity="0"/>
-        <text id="mr-voce-txt" x="0" y="0" font-size="8" fill="#fff" font-weight="bold" text-anchor="middle" opacity="0">Você</text>
-      </svg>
+    <!-- COPO -->
+    <div style="display:flex;flex-direction:column;align-items:center;margin-top:20px;padding-top:18px;border-top:2px solid var(--foam)">
+      <div style="font-size:.82rem;font-weight:800;color:var(--muted);margin-bottom:16px;text-transform:uppercase;letter-spacing:.6px">Seu copo em relação ao mundo</div>
+      <canvas id="glassCanvas" style="max-width:100%;border-radius:10px;display:block"></canvas>
+      <div style="font-size:.74rem;color:var(--muted);margin-top:10px;font-weight:600;text-align:center" id="glassLegend"></div>
     </div>
   </div>
   <div class="res-card"><h3>🌱 Recomendações para o seu perfil</h3><div id="rRecs"></div></div>
@@ -1087,7 +1079,7 @@ function calcular(){
   }).join('');
 
   // mapa
-  colorMap(total,PAISES);
+
 
   // recs
   const recs=[];
@@ -1102,6 +1094,8 @@ function calcular(){
   if(radio('reuso')==='nao') recs.push({i:'♻️',t:'<strong>Reúso de água cinza:</strong> Pode reduzir o uso direto em até 30%.'});
   recs.push({i:'💧',t:'<strong>Água oculta:</strong> '+Math.round(oculto/total*100)+'% da sua pegada está invisível — alimentação, roupas, energia e transporte pesam mais do que qualquer torneira.'});
   document.getElementById('rRecs').innerHTML=recs.map(r=>'<div class="rec-item"><div class="ri-icon">'+r.i+'</div><div class="ri-text">'+r.t+'</div></div>').join('');
+
+  drawGlasses(total,PAISES);
 
   document.getElementById('resultado').style.display='block';
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
@@ -1146,23 +1140,182 @@ function drawGauge(total,paises){
   document.getElementById('gaugeLbl').textContent='Mais próximo de: '+sim.nome+' ('+fmt(sim.val)+' L/ano)';
 }
 
-function colorMap(total,paises){
-  const regions={africa:{val:700000},europe:{val:1400000},asia:{val:1025000},na:{val:2480000},sa:{val:1700000},oceania:{val:2200000}};
-  function vc(v){return v<800000?'#A7F3D0':v<1400000?'#FDE68A':v<2000000?'#FDBA74':'#FCA5A5'}
-  Object.entries(regions).forEach(([k,r])=>{const el=document.getElementById('mr-'+k);if(el)el.setAttribute('fill',vc(r.val))});
-  const sim=paises.reduce((a,b)=>Math.abs(a.val-total)<Math.abs(b.val-total)?a:b);
-  const pos={na:[110,95],sa:[170,218],europe:[385,82],africa:[385,198],asia:[520,112],oceania:[630,240]};
-  const[px,py]=pos[sim.reg]||[400,200];
-  const yv=document.getElementById('mr-voce'),yt=document.getElementById('mr-voce-txt');
-  yv.setAttribute('cx',px);yv.setAttribute('cy',py);yv.setAttribute('opacity','1');
-  yv.style.animation='pulse 1.5s ease-in-out infinite';
-  yt.setAttribute('x',px);yt.setAttribute('y',py+4);yt.setAttribute('opacity','1');
-  const style=document.createElement('style');
-  style.textContent='@keyframes pulse{0%,100%{r:12}50%{r:16}}';
-  document.head.appendChild(style);
+
+
+function drawGlasses(total, paises){
+  const MAX_VAL = 2480000;
+  const data = [...paises, {nome:'Você', val:total, isYou:true}]
+    .sort((a,b)=>a.val-b.val);
+
+  const canvas = document.getElementById('glassCanvas');
+  const dpr = window.devicePixelRatio||1;
+  const N = data.length;
+
+  // sizing
+  const CW = 52;     // cup width
+  const CH = 120;    // cup height (body only)
+  const GAP = 18;    // gap between cups
+  const LBL = 38;    // label area below cup
+  const PAD = 16;    // left/right padding
+  const totalW = PAD*2 + N*CW + (N-1)*GAP;
+  const totalH = CH + LBL + 20; // 20px top margin
+
+  canvas.width  = totalW * dpr;
+  canvas.height = totalH * dpr;
+  canvas.style.width  = totalW + 'px';
+  canvas.style.height = totalH + 'px';
+
+  const c = canvas.getContext('2d');
+  c.scale(dpr, dpr);
+
+  // background
+  c.fillStyle = '#F0F8FF';
+  c.fillRect(0, 0, totalW, totalH);
+
+  data.forEach((p, i)=>{
+    const pct = Math.min(p.val / MAX_VAL, 1);
+    const cx = PAD + i*(CW+GAP);  // left edge of cup
+    const cy = 16;                  // top of cup body
+
+    // cup geometry — trapezoidal: slightly wider at top
+    const bw = CW;        // bottom width
+    const tw = CW + 8;    // top (mouth) wider
+    const bx = cx;
+    const tx = cx - 4;
+
+    // water fill height
+    const maxFillH = CH - 8; // leave 4px top + 4px bottom margin
+    const fillH = maxFillH * pct;
+    const fillY = cy + CH - 4 - fillH; // aligned to bottom
+
+    // water color by level
+    const wc = p.isYou ? '#EF233C'
+             : pct < .38 ? '#06D6A0'
+             : pct < .68 ? '#FFB703'
+             : '#EF233C';
+    const wcLight = p.isYou ? 'rgba(239,35,60,.25)'
+                  : pct < .38 ? 'rgba(6,214,160,.25)'
+                  : pct < .68 ? 'rgba(255,183,3,.25)'
+                  : 'rgba(239,35,60,.25)';
+
+    // ── draw cup outline (trapezoid) ──
+    c.save();
+    // clip interior for water
+    c.beginPath();
+    c.moveTo(tx+4, cy+4);
+    c.lineTo(tx+tw-4, cy+4);
+    c.lineTo(bx+bw-2, cy+CH-4);
+    c.lineTo(bx+2, cy+CH-4);
+    c.closePath();
+    c.clip();
+
+    // fill background (glass empty area)
+    c.fillStyle = 'rgba(224,242,254,.4)';
+    c.fill();
+
+    // water body
+    if(fillH > 0){
+      // interpolated water top width
+      const wTopW = bw + (tw - bw) * ((CH - fillH) / CH);
+      const wTopX = cx + (CW - wTopW)/2;
+
+      c.beginPath();
+      // wavy top edge
+      const waveAmp = 3;
+      c.moveTo(wTopX, fillY + waveAmp);
+      c.bezierCurveTo(
+        wTopX + wTopW*0.25, fillY - waveAmp,
+        wTopX + wTopW*0.75, fillY + waveAmp,
+        wTopX + wTopW, fillY - waveAmp*0.5
+      );
+      c.lineTo(bx+bw-2, cy+CH-4);
+      c.lineTo(bx+2, cy+CH-4);
+      c.closePath();
+
+      const wg = c.createLinearGradient(0, fillY, 0, cy+CH);
+      wg.addColorStop(0, wcLight.replace('.25','.6'));
+      wg.addColorStop(1, wc);
+      c.fillStyle = wg;
+      c.fill();
+
+      // shimmer line on water surface
+      c.beginPath();
+      c.moveTo(wTopX+4, fillY);
+      c.bezierCurveTo(
+        wTopX + wTopW*0.3, fillY - waveAmp*1.2,
+        wTopX + wTopW*0.6, fillY + waveAmp*0.8,
+        wTopX + wTopW - 4, fillY
+      );
+      c.strokeStyle = 'rgba(255,255,255,.55)';
+      c.lineWidth = 1.5;
+      c.stroke();
+    }
+    c.restore();
+
+    // ── cup outline stroke (on top of water) ──
+    c.beginPath();
+    // left wall
+    c.moveTo(tx+2, cy+2);
+    c.lineTo(bx+2, cy+CH-2);
+    // bottom arc
+    c.arcTo(bx+2, cy+CH+2, bx+bw-2, cy+CH+2, 4);
+    c.arcTo(bx+bw-2, cy+CH+2, bx+bw-2, cy+CH-2, 4);
+    // right wall
+    c.lineTo(tx+tw-2, cy+2);
+    c.strokeStyle = p.isYou ? '#EF233C' : 'rgba(0,119,182,.5)';
+    c.lineWidth = p.isYou ? 2.5 : 1.5;
+    c.stroke();
+
+    // mouth rim (top opening) — open cup
+    c.beginPath();
+    c.moveTo(tx+2, cy+2);
+    c.lineTo(tx+tw-2, cy+2);
+    c.strokeStyle = p.isYou ? '#EF233C' : 'rgba(0,119,182,.4)';
+    c.lineWidth = p.isYou ? 2.5 : 1.5;
+    c.stroke();
+
+    // glass shine (vertical highlight strip)
+    c.fillStyle = 'rgba(255,255,255,.28)';
+    c.beginPath();
+    c.roundRect(cx+4, cy+8, 5, CH-20, 3);
+    c.fill();
+
+    // % label inside if enough space
+    if(fillH > 22){
+      c.font = `800 11px 'Bebas Neue', sans-serif`;
+      c.fillStyle = 'rgba(255,255,255,.92)';
+      c.textAlign = 'center';
+      c.fillText(Math.round(pct*100)+'%', cx+CW/2, fillY+fillH/2+5);
+    }
+
+    // ── labels below cup ──
+    const lblY = cy + CH + 10;
+    const name = p.nome.replace(/[\u{1F1E0}-\u{1F1FF}]{2}|📍/gu,'').trim();
+
+    c.textAlign = 'center';
+    c.font = p.isYou ? `900 10px 'Nunito',sans-serif` : `700 9px 'Nunito',sans-serif`;
+    c.fillStyle = p.isYou ? '#C62828' : '#334155';
+    // wrap name if needed
+    const words = name.split(/\s+/);
+    if(words.length > 1 && name.length > 7){
+      c.fillText(words[0], cx+CW/2, lblY+2);
+      c.fillText(words.slice(1).join(' '), cx+CW/2, lblY+13);
+    } else {
+      c.fillText(name, cx+CW/2, lblY+8);
+    }
+
+    c.font = `800 9px 'Bebas Neue',sans-serif`;
+    c.fillStyle = p.isYou ? '#EF233C' : '#0077B6';
+    c.fillText(fmtShort(p.val)+'L', cx+CW/2, lblY+26);
+  });
+
+  document.getElementById('glassLegend').textContent =
+    'Copo cheio = referência EUA (' + fmt(MAX_VAL) + ' L/ano) · altura proporcional ao consumo';
 }
 
-function openModal(){document.getElementById('modalOverlay').classList.add('open')}
+function fmtShort(n){
+  return n>=1000000?(n/1000000).toFixed(1)+'M':n>=1000?Math.round(n/1000)+'mil':String(n);
+}
 function closeModal(){document.getElementById('modalOverlay').classList.remove('open')}
 function closeModalOutside(e){if(e.target===document.getElementById('modalOverlay'))closeModal()}
 function reiniciar(){
