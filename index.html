@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conta-Gotas do Planeta 💧</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --deep:#003566;--ocean:#0077B6;--sky:#00B4D8;--cyan:#90E0EF;--foam:#CAF0F8;
+  --white:#FFFFFF;--bg:#F5FBFF;--text:#0A1628;--muted:#4A6080;--border:#C8E6F5;
+  --green:#06D6A0;--amber:#FFB703;--red:#EF233C;--purple:#7B2FBE;
+  --r:18px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ═══ CANVAS BACKGROUND ═══ */
+#bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.35}
+
+/* ═══ HERO ═══ */
+.hero{
+  position:relative;z-index:1;
+  background:linear-gradient(160deg,var(--deep) 0%,var(--ocean) 55%,var(--sky) 100%);
+  padding:60px 24px 100px;text-align:center;overflow:hidden;
+}
+.hero-bubbles{position:absolute;inset:0;pointer-events:none}
+.bubble{
+  position:absolute;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.55),rgba(144,224,239,.2));
+  border:1px solid rgba(255,255,255,.25);
+  animation:rise var(--dur) ease-in infinite;
+  animation-delay:var(--delay);
+  bottom:-80px;
+}
+@keyframes rise{
+  0%{transform:translateX(0) scale(1);opacity:.7}
+  60%{opacity:.5}
+  100%{transform:translateX(var(--drift)) scale(.7) translateY(-110vh);opacity:0}
+}
+.hero-wave{position:absolute;bottom:-2px;left:0;right:0;line-height:0}
+.hero-wave svg{display:block;width:100%}
+
+.hero-logo{font-size:4rem;display:inline-block;animation:dropBounce 2s ease-in-out infinite}
+@keyframes dropBounce{
+  0%,100%{transform:translateY(0) scaleY(1)}
+  40%{transform:translateY(-12px) scaleY(.94)}
+  70%{transform:translateY(4px) scaleY(1.04)}
+}
+.hero h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(2.8rem,9vw,5.5rem);
+  color:#fff;letter-spacing:3px;line-height:1;
+  margin:10px 0 6px;
+  text-shadow:0 4px 30px rgba(0,119,182,.5);
+}
+.hero h1 span{color:var(--cyan)}
+.hero-sub{
+  font-size:1rem;color:rgba(255,255,255,.82);
+  max-width:460px;margin:0 auto 20px;line-height:1.65;font-weight:600
+}
+.hero-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:10px}
+.hero-pill{
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);
+  color:#fff;font-size:.75rem;font-weight:700;
+  padding:5px 14px;border-radius:50px;backdrop-filter:blur(4px);
+  transition:all .2s;cursor:default;
+}
+.hero-pill:hover{background:rgba(255,255,255,.26)}
+
+/* ═══ WRAP ═══ */
+.wrap{max-width:700px;margin:-40px auto 80px;padding:0 18px;position:relative;z-index:1}
+
+/* ═══ PROGRESS ═══ */
+.prog-card{
+  background:var(--white);border-radius:50px;
+  box-shadow:0 4px 24px rgba(0,119,182,.12);
+  padding:14px 22px;margin-bottom:20px;
+  border:1px solid var(--border);
+  display:flex;align-items:center;gap:14px;
+}
+.prog-track{flex:1;height:10px;background:var(--foam);border-radius:50px;overflow:hidden}
+.prog-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--ocean),var(--sky),var(--cyan));
+  background-size:200% 100%;
+  border-radius:50px;
+  transition:width .5s cubic-bezier(.4,0,.2,1);
+  animation:shimmer 2s linear infinite;
+}
+@keyframes shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
+.prog-lbl{font-size:.8rem;font-weight:900;color:var(--ocean);white-space:nowrap}
+.prog-drops{font-size:.9rem;letter-spacing:1px}
+
+/* ═══ STEP CARD ═══ */
+.step{
+  display:none;
+  background:var(--white);
+  border-radius:var(--r);
+  box-shadow:0 6px 32px rgba(0,119,182,.10);
+  border:2px solid var(--border);
+  padding:32px 28px;
+  position:relative;overflow:hidden;
+  animation:cardIn .35s cubic-bezier(.34,1.56,.64,1) both;
+}
+.step.active{display:block}
+@keyframes cardIn{
+  from{opacity:0;transform:translateY(20px) scale(.97)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+/* colored top stripe */
+.step::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--stripe-a,var(--ocean)),var(--stripe-b,var(--sky)));
+}
+.step[data-step="2"]{--stripe-a:#0096C7;--stripe-b:#00B4D8}
+.step[data-step="3"]{--stripe-a:#06D6A0;--stripe-b:#00B4D8}
+.step[data-step="4"]{--stripe-a:#0077B6;--stripe-b:#48CAE4}
+.step[data-step="5"]{--stripe-a:#7B2FBE;--stripe-b:#9D4EDD}
+.step[data-step="6"]{--stripe-a:#06D6A0;--stripe-b:#2DC653}
+.step[data-step="7"]{--stripe-a:#EF233C;--stripe-b:#FF6B6B}
+.step[data-step="8"]{--stripe-a:#06D6A0;--stripe-b:#0096C7}
+.step[data-step="9"]{--stripe-a:#7B2FBE;--stripe-b:#C77DFF}
+.step[data-step="10"]{--stripe-a:#FFB703;--stripe-b:#FB8500}
+.step[data-step="11"]{--stripe-a:#3A0CA3;--stripe-b:#7B2FBE}
+.step[data-step="12"]{--stripe-a:#F77F00;--stripe-b:#D62828}
+.step[data-step="13"]{--stripe-a:#0077B6;--stripe-b:#06D6A0}
+
+.step-head{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--foam)}
+.step-icon{
+  width:52px;height:52px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;flex-shrink:0;
+  box-shadow:0 4px 12px rgba(0,0,0,.08);
+}
+.step-head h2{font-size:1.2rem;font-weight:900;line-height:1.2;color:var(--deep)}
+.step-head p{font-size:.8rem;color:var(--muted);margin-top:2px;font-weight:600}
+.section-badge{
+  display:inline-block;font-size:.68rem;font-weight:900;
+  padding:2px 10px;border-radius:50px;margin-bottom:5px;
+  letter-spacing:.8px;text-transform:uppercase;
+}
+.bd{background:#DBEAFE;color:#1D4ED8}
+.bh{background:#EDE9FE;color:#6D28D9}
+
+/* ═══ FIELDS ═══ */
+.field{margin-bottom:20px}
+.field>label{display:block;font-size:.87rem;font-weight:800;margin-bottom:9px;color:var(--deep)}
+.hint{font-size:.73rem;color:var(--muted);margin-top:5px;line-height:1.5;font-weight:600}
+.hint a{color:var(--ocean);text-decoration:none}
+
+input[type=text]{
+  width:100%;max-width:300px;padding:12px 16px;
+  border:2px solid var(--border);border-radius:12px;
+  font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:700;
+  outline:none;transition:all .2s;background:#FAFEFF;color:var(--deep);
+}
+input[type=text]:focus{border-color:var(--sky);box-shadow:0 0 0 4px rgba(0,180,216,.15)}
+
+/* SLIDER */
+.sl-wrap{display:flex;align-items:center;gap:12px;max-width:420px}
+input[type=range]{
+  flex:1;height:8px;border-radius:4px;
+  appearance:none;
+  background:linear-gradient(90deg,var(--sky) var(--pct,50%),var(--foam) var(--pct,50%));
+  outline:none;cursor:pointer;transition:background .1s;
+}
+input[type=range]::-webkit-slider-thumb{
+  appearance:none;width:24px;height:24px;border-radius:50%;
+  background:linear-gradient(135deg,var(--sky),var(--ocean));
+  border:3px solid #fff;
+  box-shadow:0 2px 8px rgba(0,119,182,.4);cursor:pointer;
+  transition:transform .15s;
+}
+input[type=range]::-webkit-slider-thumb:active{transform:scale(1.2)}
+.sl-val{
+  min-width:52px;text-align:center;
+  font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:1px;
+  color:var(--ocean);background:var(--foam);
+  border-radius:10px;padding:2px 10px;
+}
+
+/* OPTS */
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt-i{display:none}
+.opt-l{
+  cursor:pointer;padding:10px 16px;
+  border:2px solid var(--border);border-radius:50px;
+  font-size:.84rem;font-weight:700;color:var(--muted);
+  background:#FAFEFF;transition:all .18s;user-select:none;
+  position:relative;overflow:hidden;
+}
+.opt-l::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at var(--rx,50%) var(--ry,50%),rgba(255,255,255,.5) 0%,transparent 70%);
+  opacity:0;transition:opacity .3s;
+}
+.opt-l:hover::after{opacity:1}
+.opt-i:checked+.opt-l{border-color:var(--ocean);background:linear-gradient(135deg,var(--ocean),var(--sky));color:#fff;box-shadow:0 4px 14px rgba(0,119,182,.3)}
+.opt-i.g:checked+.opt-l{border-color:var(--green);background:linear-gradient(135deg,#05A37A,var(--green));color:#fff;box-shadow:0 4px 14px rgba(6,214,160,.3)}
+.opt-i.a:checked+.opt-l{border-color:var(--amber);background:linear-gradient(135deg,#E5A300,var(--amber));color:#fff}
+.opt-i.r:checked+.opt-l{border-color:var(--red);background:linear-gradient(135deg,#C91A2E,var(--red));color:#fff}
+.yn .opt-l{padding:11px 28px;font-size:.92rem}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:500px){.g2{grid-template-columns:1fr}}
+
+/* NAV */
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:18px;border-top:2px solid var(--foam);gap:12px}
+.btn{
+  padding:12px 28px;border-radius:50px;
+  font-family:'Nunito',sans-serif;font-size:.92rem;font-weight:800;
+  cursor:pointer;border:none;
+  transition:transform .15s,box-shadow .15s;
+  position:relative;overflow:hidden;
+}
+.btn:active{transform:scale(.97)}
+.btn-prev{background:var(--foam);color:var(--ocean);border:2px solid var(--border)}
+.btn-prev:hover{background:var(--border)}
+.btn-next{
+  background:linear-gradient(135deg,var(--ocean),var(--sky));
+  color:#fff;box-shadow:0 6px 20px rgba(0,119,182,.35);
+}
+.btn-next:hover{box-shadow:0 8px 28px rgba(0,119,182,.5);transform:translateY(-2px)}
+.btn-calc{
+  flex:1;
+  background:linear-gradient(135deg,var(--deep),var(--ocean),var(--sky));
+  background-size:200% 100%;
+  color:#fff;padding:15px 36px;font-size:1rem;
+  box-shadow:0 8px 28px rgba(0,53,102,.4);
+  animation:gradShift 3s ease infinite;
+}
+@keyframes gradShift{0%,100%{background-position:0%}50%{background-position:100%}}
+.btn-calc:hover{box-shadow:0 12px 36px rgba(0,53,102,.5);transform:translateY(-2px)}
+
+/* ripple */
+.ripple-drop{
+  position:absolute;border-radius:50%;
+  background:rgba(255,255,255,.35);
+  transform:scale(0);animation:rippleOut .6s ease-out forwards;
+  pointer-events:none;
+}
+@keyframes rippleOut{to{transform:scale(4);opacity:0}}
+
+/* ═══ RESULTADO ═══ */
+#resultado{display:none;margin-top:20px}
+
+.res-hero{
+  background:linear-gradient(140deg,var(--deep) 0%,var(--ocean) 60%,var(--sky) 100%);
+  border-radius:var(--r);padding:40px 28px 32px;
+  text-align:center;color:#fff;margin-bottom:16px;
+  box-shadow:0 12px 48px rgba(0,53,102,.3);
+  position:relative;overflow:hidden;
+}
+.res-hero::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='80' fill='none' stroke='rgba(255,255,255,.05)' stroke-width='1'/%3E%3Ccircle cx='100' cy='100' r='55' fill='none' stroke='rgba(255,255,255,.05)' stroke-width='1'/%3E%3C/svg%3E") center/cover;
+}
+.rh-name{font-size:.9rem;opacity:.78;margin-bottom:6px;font-weight:700;position:relative}
+.rh-num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(3.5rem,12vw,6rem);
+  letter-spacing:2px;line-height:1;
+  position:relative;
+  text-shadow:0 4px 24px rgba(0,0,0,.3);
+}
+.rh-unit{opacity:.75;font-size:.9rem;margin-top:2px;font-weight:700;position:relative}
+.rh-comp{
+  margin-top:14px;background:rgba(255,255,255,.16);
+  border-radius:50px;padding:7px 20px;font-size:.84rem;
+  display:inline-block;position:relative;font-weight:700;
+  border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(4px);
+}
+
+/* fill animation for result number */
+.num-fill{
+  position:relative;display:inline-block;
+  -webkit-text-stroke:1px rgba(255,255,255,.3);
+}
+.num-fill::before{
+  content:attr(data-text);
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  color:var(--cyan);
+  clip-path:inset(var(--fill-top,100%) 0 0 0);
+  transition:clip-path 2s cubic-bezier(.4,0,.2,1);
+}
+
+.nivel-pill{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 22px;border-radius:50px;font-weight:800;font-size:.88rem;
+  margin:8px auto 16px;width:fit-content;
+  box-shadow:0 4px 14px rgba(0,0,0,.1);
+}
+.nl-baixo{background:linear-gradient(135deg,#D1FAE5,#A7F3D0);color:#065F46;border:2px solid #6EE7B7}
+.nl-medio{background:linear-gradient(135deg,#FEF3C7,#FDE68A);color:#92400E;border:2px solid #FCD34D}
+.nl-alto{background:linear-gradient(135deg,#FEE2E2,#FECACA);color:#991B1B;border:2px solid #FCA5A5}
+
+/* blocks row */
+.blocks-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:480px){.blocks-row{grid-template-columns:1fr}}
+.block-card{
+  border-radius:var(--r);padding:22px;text-align:center;
+  position:relative;overflow:hidden;
+  transition:transform .2s;cursor:default;
+}
+.block-card:hover{transform:translateY(-3px)}
+.block-direct{background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border:2px solid #BFDBFE}
+.block-hidden{background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border:2px solid #DDD6FE}
+.block-card .bc-icon{font-size:2rem;margin-bottom:6px}
+.block-card .bc-lbl{font-size:.72rem;font-weight:800;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.8px}
+.block-card .bc-val{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:1px}
+.block-direct .bc-val{color:var(--ocean)}
+.block-hidden .bc-val{color:var(--purple)}
+.block-card .bc-sub{font-size:.73rem;color:var(--muted);margin-top:2px;font-weight:700}
+
+/* res card */
+.res-card{
+  background:var(--white);border-radius:var(--r);
+  box-shadow:0 4px 24px rgba(0,119,182,.08);
+  border:2px solid var(--border);padding:24px 26px;margin-bottom:14px;
+}
+.res-card h3{font-weight:900;font-size:.95rem;margin-bottom:16px;display:flex;align-items:center;gap:8px;color:var(--deep)}
+
+/* ind grid */
+.ind-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+@media(max-width:480px){.ind-grid{grid-template-columns:repeat(2,1fr)}}
+.ind{
+  background:linear-gradient(135deg,var(--foam),var(--bg));
+  border-radius:14px;padding:15px 10px;text-align:center;
+  border:2px solid var(--border);
+  transition:transform .2s,box-shadow .2s;
+}
+.ind:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,119,182,.12)}
+.ind .i-icon{font-size:1.4rem}
+.ind .i-val{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:1px;color:var(--ocean);margin:3px 0 1px}
+.ind .i-lbl{font-size:.72rem;color:var(--muted);line-height:1.3;font-weight:700}
+
+/* bars */
+.bar-item{margin-bottom:12px}
+.bar-lr{display:flex;justify-content:space-between;font-size:.82rem;font-weight:800;margin-bottom:5px}
+.bar-track{height:10px;background:var(--foam);border-radius:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+
+/* gauge */
+.gauge-wrap{text-align:center;margin-bottom:8px}
+.gauge-wrap svg{max-width:300px;width:100%}
+.gauge-lbl{font-size:.82rem;color:var(--muted);margin-top:4px;font-weight:700}
+
+/* country bars */
+.country-item{margin-bottom:10px}
+.country-row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.country-flag{font-size:1.1rem;width:26px;text-align:center}
+.country-name{font-size:.82rem;font-weight:800;flex:1;color:var(--deep)}
+.country-val{font-size:.78rem;color:var(--muted);font-weight:700;white-space:nowrap}
+.country-track{height:8px;background:var(--foam);border-radius:4px;overflow:hidden}
+.country-bar{height:100%;border-radius:4px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.you-row{background:linear-gradient(90deg,#EFF6FF,#DBEAFE);border-radius:8px;padding:6px 10px;border:1px solid #BFDBFE}
+
+/* map */
+.map-wrap{border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#EFF6FF,var(--foam));padding:12px;border:2px solid var(--border)}
+.map-wrap svg{width:100%;height:auto}
+
+/* recs */
+.rec-item{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:linear-gradient(135deg,var(--foam),var(--bg));margin-bottom:9px;border:1px solid var(--border)}
+.ri-icon{font-size:1.15rem;flex-shrink:0;margin-top:1px}
+.ri-text{font-size:.84rem;line-height:1.6;font-weight:600}
+.ri-text strong{color:var(--ocean)}
+
+/* modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,20,50,.7);z-index:1000;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--white);border-radius:24px 24px 0 0;padding:28px 24px 48px;max-width:700px;width:100%;max-height:88vh;overflow-y:auto;animation:slideUp .35s cubic-bezier(.34,1.2,.64,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--foam)}
+.modal-head h2{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:2px;color:var(--deep)}
+.btn-close{background:var(--foam);border:none;border-radius:50%;width:38px;height:38px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--ocean);transition:all .15s}
+.btn-close:hover{background:var(--ocean);color:#fff}
+.metod-section{margin-bottom:22px}
+.metod-section h4{font-size:.85rem;font-weight:900;color:var(--ocean);margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid var(--foam);text-transform:uppercase;letter-spacing:.5px}
+.metod-row{display:flex;justify-content:space-between;font-size:.79rem;padding:5px 0;border-bottom:1px solid var(--foam);font-weight:600}
+.metod-row span:last-child{font-weight:800;color:var(--ocean)}
+.ref-item{font-size:.74rem;color:var(--muted);line-height:1.65;margin-bottom:4px;font-weight:600}
+.ref-item a{color:var(--ocean);text-decoration:none}
+
+.btn-metod{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--foam);color:var(--ocean);
+  border:2px solid var(--border);border-radius:50px;
+  padding:10px 22px;font-family:'Nunito',sans-serif;
+  font-weight:800;font-size:.84rem;cursor:pointer;
+  transition:all .18s;margin-bottom:14px;
+}
+.btn-metod:hover{background:var(--ocean);color:#fff;border-color:var(--ocean)}
+.btn-refazer{
+  display:block;margin:0 auto 48px;
+  padding:13px 36px;border-radius:50px;
+  background:var(--bg);color:var(--ocean);
+  border:2px solid var(--ocean);
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:.92rem;
+  cursor:pointer;transition:all .18s;
+}
+.btn-refazer:hover{background:var(--ocean);color:#fff}
+
+/* floating facts ticker */
+.ticker-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:50;
+  background:linear-gradient(90deg,var(--deep),var(--ocean));
+  padding:10px 20px;overflow:hidden;
+}
+.ticker-inner{display:flex;gap:60px;white-space:nowrap;animation:tickerMove 40s linear infinite}
+.ticker-inner span{font-size:.75rem;color:rgba(255,255,255,.85);font-weight:700}
+.ticker-inner span em{color:var(--cyan);font-style:normal}
+
+@keyframes tickerMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* icon backgrounds */
+.ic-blue{background:linear-gradient(135deg,#DBEAFE,#BFDBFE)}
+.ic-teal{background:linear-gradient(135deg,#CCFBF1,#99F6E4)}
+.ic-green{background:linear-gradient(135deg,#DCFCE7,#BBF7D0)}
+.ic-amber{background:linear-gradient(135deg,#FEF3C7,#FDE68A)}
+.ic-red{background:linear-gradient(135deg,#FEE2E2,#FECACA)}
+.ic-purple{background:linear-gradient(135deg,#F5F3FF,#EDE9FE)}
+.ic-sky{background:linear-gradient(135deg,#E0F2FE,#BAE6FD)}
+.ic-indigo{background:linear-gradient(135deg,#E0E7FF,#C7D2FE)}
+.ic-brown{background:linear-gradient(135deg,#FEF9C3,#FEF08A)}
+
+footer{
+  text-align:center;padding:20px 20px 60px;
+  font-size:.77rem;color:var(--muted);font-weight:700;
+}
+footer a{color:var(--ocean);text-decoration:none}
+@media(max-width:520px){.step{padding:22px 15px}.nav{flex-wrap:wrap}.btn-calc{order:1;width:100%}.btn-prev{order:2}}
+</style>
+</head>
+<body>
+
+<!-- animated background canvas -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- TICKER -->
+<div class="ticker-bar">
+  <div class="ticker-inner" id="tickerInner"></div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bubbles" id="heroBubbles"></div>
+  <div class="hero-logo">💧</div>
+  <h1>CONTA-GOTAS<br><span>DO PLANETA</span></h1>
+  <p class="hero-sub">Descubra sua pegada hídrica real — o que você usa e o que está escondido no que você consome.</p>
+  <div class="hero-pills">
+    <span class="hero-pill">💧 Uso direto</span>
+    <span class="hero-pill">👗 Moda &amp; consumo</span>
+    <span class="hero-pill">⚡ Energia</span>
+    <span class="hero-pill">✈️ Transporte</span>
+    <span class="hero-pill">🌍 Ranking global</span>
+  </div>
+  <div class="hero-wave">
+    <svg viewBox="0 0 1440 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,30 C240,60 480,0 720,30 C960,60 1200,0 1440,30 L1440,60 L0,60 Z" fill="#F5FBFF"/>
+    </svg>
+  </div>
+</div>
+
+<div class="wrap">
+<div class="prog-card">
+  <div class="prog-track"><div class="prog-fill" id="progFill" style="width:7%"></div></div>
+  <div>
+    <div class="prog-lbl" id="progLbl">Etapa 1 de 13</div>
+    <div class="prog-drops" id="progDrops">💧</div>
+  </div>
+</div>
+
+<!-- ░░ E1 ░░ -->
+<div class="step active" data-step="1">
+  <div class="step-head"><div class="step-icon ic-blue">👤</div>
+    <div><h2>Olá! Vamos começar?</h2><p>Para personalizar o resultado</p></div></div>
+  <div class="field"><label>Seu nome</label>
+    <input type="text" id="nome" placeholder="Digite seu nome"></div>
+  <div class="nav"><span></span><button class="btn btn-next" onclick="goNext()">Próximo →</button></div>
+</div>
+
+<!-- ░░ E2 ░░ -->
+<div class="step" data-step="2">
+  <div class="step-head"><div class="step-icon ic-sky">🚰</div>
+    <div><span class="section-badge bd">USO DIRETO</span><h2>Fonte de água</h2><p>Afeta disponibilidade e comportamento de uso</p></div></div>
+  <div class="field"><label>Principal fonte de água na sua casa</label>
+    <div class="opts">
+      <input type="radio" name="fonte" id="f1" value="rede" class="opt-i" checked><label for="f1" class="opt-l">🏙️ Rede pública</label>
+      <input type="radio" name="fonte" id="f2" value="poco" class="opt-i"><label for="f2" class="opt-l">🌊 Poço / nascente</label>
+      <input type="radio" name="fonte" id="f3" value="pipa" class="opt-i"><label for="f3" class="opt-l">🚛 Caminhão-pipa</label>
+      <input type="radio" name="fonte" id="f4" value="chuva" class="opt-i g"><label for="f4" class="opt-l">🌧️ Captação de chuva</label>
+    </div>
+    <div class="hint">Quem depende de pipa tende a usar com mais rigor. Poço próprio costuma gerar maior consumo sem percepção.</div></div>
+  <div class="field"><label>Você reutiliza água em casa?</label>
+    <div class="opts yn">
+      <input type="radio" name="reuso" id="ru1" value="sim" class="opt-i g"><label for="ru1" class="opt-l">✅ Sim</label>
+      <input type="radio" name="reuso" id="ru2" value="nao" class="opt-i" checked><label for="ru2" class="opt-l">❌ Não</label>
+    </div></div>
+  <div class="nav"><button class="btn btn-prev" onclick="goPrev()">← Voltar</button><button class="btn btn-next" onclick="goNext()">Próximo →</button></div>
+</div>
+
+<!-- ░░ E3 ░░ -->
+<div class="step" data-step="3">
+  <div class="step-head"><div class="step-icon ic-teal">🚿</div>
+    <div><span class="section-badge bd">USO DIRETO</span><h2>Banho</h2><p>Maior consumo doméstico direto</p></div></div>
+  <div class="field"><label>Tipo de banho</label>
+    <div class="opts">
+      <input type="radio" name="tipoBanho" id="tb1" value="chuveiro" class="opt-i" checked><label for="tb1" class="opt-l">🚿 Chuveiro elétrico / a gás</label>
+      <input type="radio" name="tipoBanho" id="tb2" value="balde" class="opt-i a"><label for="tb2" class="opt-l">🪣 Balde</label>
+      <input type="radio" name="tipoBanho" id="tb3" value="rio" class="opt-i g"><label for="tb3" class="opt-l">🌊 Rio / igarapé</label>
+    </div></div>
+  <div class="field" id="fBanhoMin"><label>Duração média (minutos)</label>
+    <div class="sl-wrap"><input type="range" id="tempoBanho" min="1" max="30" value="10" oninput="sv(this,'vBanho')"><span class="sl-val" id="vBanho">10</span></div>
+    <div class="hint">Chuveiro convencional: ~10 L/min · SNIS, 2020</div></div>
+  <div class="nav"><button class="btn btn-prev" onclick="goPrev()">← Voltar</button><button class="btn btn-next" onclick="goNext()">Próximo →</button></div>
+</div>
+
+<!-- ░░ E4 ░░ -->
+<div class="step" data-step="4">
+  <div class="step-head"><div class="step-icon ic-blue">🚽</div>
+    <div><span class="section-badge bd">USO DIRETO</span><h2>Higiene sanitária</h2><p>Descarga e escovação somam mais do que parece</p></div></div>
+  <div class="field"><label>Tipo de descarga / vaso</label>
+    <div class="opts">
+      <input type="radio" name="tipoDesc" id="td1" value="caixa" class="opt-i" checked><label for="td1" class="opt-l">🚽 Caixa acoplada (~6,8 L)</label>
+      <input type="radio" name="tipoDesc" id="td2" value="parede" class="opt-i"><label for="td2" class="opt-l">🪣 Caixa de parede (~12 L)</label>
+      <input type="radio" name="tipoDesc" id="td3" value="dual" class="opt-i g"><label for="td3" class="opt-l">♻️ Dual-flush (~4 L)</label>
+      <input type="radio" name="tipoDesc" id="td4" value="fossa" class="opt-i a"><label for="td4" class="opt-l">🌿 Fossa / sem descarga</label>
+    </div></div>
+  <div class="field" id="fDescQtd"><label>Descargas por dia</label>
+    <div class="sl-wrap"><input type="range" id="descarga" min="1" max="15" value="5" oninput="sv(this,'vDesc')"><span class="sl-val" id="vDesc">5</span></div>
+    <div class="hint">ABNT NBR 15097</div></div>
+  <div class="field"><label>Torneira ao escovar os dentes</label>
+    <div class="opts yn">
+      <input type="radio" name="torneira" id="to1" value="aberta" class="opt-i" checked><label for="to1" class="opt-l">🚰 Aberta</label>
+      <input type="radio" name="torneira" id="to2" value="fechada" class="opt-i g"><label for="to2" class="opt-l">✋ Fechada</label>
+    </div>
+    <div class="hint">Torneira aberta: ~6 L/min · ANA, 2017</div></div>
+  <div class="nav"><button class="btn btn-prev" onclick="goPrev()">← Voltar</button><button class="btn btn-next" onclick="goNext()">Próximo →</button></div>
+</div>
+
+<!-- ░░ E5 ░░ -->
+<div class="step" data-step="5">
+  <div class="step-head"><div class="step-icon ic-purple">👕</div>
+    <div><span class="section-badge bd">USO DIRETO</span><h2>Lavagem de roupas</h2><p>Método e frequência fazem grande diferença</p></div></div>
+  <div class="field"><label>Como você lava roupas?</label>
+    <div class="opts">
+      <input type="radio" name="tipoRoupa" id="tr1" value="maquina" class="opt-i" checked><label for="tr1" class="opt-l">🫧 Máquina convencional (~130 L)</label>
+      <input type="radio" name="tipoRoupa" id="tr2" value="tanquinho" class="opt-i"><label for="tr2" class="opt-l">🪣 Tanquinho (~80 L)</label>
+      <input type="radio" name="tipoRoupa" id="tr3" value="mao" class="opt-i g"><label for="tr3" class="opt-l">🤲 À mão (~30 L)</label>
+      <input type="radio" name="tipoRoupa" id="tr4" value="lavanderia" class="opt-i a"><label for="tr4" class="opt-l">🏪 Lavanderia pública</label>
+    </div>
+    <div class="hint">PROCEL/ELETROBRAS, 2019</div></div>
+  <div class="field"><label>Frequência de lavagem</label>
+    <div class="opts">
+      <input type="radio" name="freqRoupa" id="fr1" value="diario" class="opt-i" checked><label for="fr1" class="opt-l">📅 Diária</label>
+      <input type="radio" name="freqRoupa" id="fr2" value="semanal" class="opt-i"><label for="fr2" class="opt-l">🗓️ Semanal</label>
+      <input type="radio" name="freqRoupa" id="fr3" value="quinzenal" class="opt-i g"><label for="fr3" class="opt-l">📆 Quinzenal</label>
+    </div></div>
+  <div class="nav"><button class="btn btn-prev" onclick="goPrev()">← Voltar</button><button class="btn btn-next" onclick="goNext()">Próximo →</button></div>
+</div>
+
+<!-- ░░ E6 ░░ -->
+<div class="step" data-step="6">
+  <div class="step-head"><div class="step-icon ic-green">🍽️</div>
+    <div><span class="section-badge bh">CONSUMO OCULTO</span><h2>Alimentação</h2><p>~70% de toda a água doce do planeta vai para produção de alimentos</p></div></div>
+  <div class="field"><label>Proteína animal que você consome com mais frequência</label>
+    <div class="opts">
+      <input type="radio" name="tipoCarne" id="tc1" value="bovina" class="opt-i" checked><label for="tc1" class="opt-l">🥩 Bovina / suína</label>
+      <input type="radio" name="tipoCarne" id="tc2" value="frango" class="opt-i"><label for="tc2" class="opt-l">🍗 Frango / peixe</label>
+      <input type="radio" name="tipoCarne" id="tc3" value="ovos" class="opt-i a"><label for="tc3" class="opt-l">🥚 Ovos / laticínios</label>
+      <input type="radio" name="tipoCarne" id="tc4" value="nenhum" class="opt-i g"><label for="tc4" class="opt-l">🌱 Não como carne</label>
+    </div>
+    <div class="hint">Mekonnen & Hoekstra, 2011: bovina ~2.700 L/ref · frango ~520 L · ovos ~200 L</div></div>
+  <div class="g2">
+    <div class="field"><label>Refeições proteicas por semana</label>
+      <div class="sl-wrap"><input type="range" id="refeicoes" min="0" max="21" value="7" oninput="sv(this,'vRef')"><span class="sl-val" id="vRef">7</span></div></div>
+    <div class="field"><label>Refeições vegetais / grãos por semana</label>
+      <div class="sl-wrap"><input type="range" id="vegetais" min="0" max="21" value="7" oninput="sv(this,'vVeg')"><span class="sl-val" id="vVeg">7</span></div>
+      <div class="hint">~200 L/refeição</div></div>
+  </div>
+  <div class="nav"><button class="btn btn-prev" onclick="goPrev()">← Voltar</button><button class="btn btn-next" onclick="goNext()">Próximo →</button></div>
+</div>
+
+<!-- ░░ E7 ░░ -->
+<div class="step" data-step="7">
+  <div class="step-head"><div class="step-icon ic-red">🚗</div>
+    <div><span class="section-badge bd">USO DIRETO</span><h2>Veículos</h2><p>Só responda se tiver — sem veículo, avance</p></div></div>
+  <div class="field"><label>Você tem veículo motorizado?</label>
+    <div class="opts yn">
+      <input type="radio" name="temVeic" id="tv1" value="sim" class="opt-i" checked><label for="tv1" class="opt-l">✅ Sim</label>
+      <input type="radio" name="temVeic" id="tv2" value="nao" class="opt-i g"><label for="tv2" class="opt-l">❌ Não</label>
+    </div></div>
+  <div id="veicExtra">
+    <div class="field"><label>Lavagens por mês</label>
+      <div class="sl-wrap"><input type="range" id="veiculo" min="0" max="12" value="2" oninput="sv(this,'vVei')"><span class="sl-val" id="vVei">2</span></div></div>
+    <div class="field"><label>Como lava?</label>
+      <div class="opts">
+        <input type="radio" name="modoLav" id="ml1" value="mangueira" class="opt-i" checked><label for="ml1" class="opt-l">💦 Mangueira (~280 L)</label>
+        <input type="radio" name="modoLav" id="ml2" value="balde" class="opt-i a"><label for="ml2" class="opt-l">🪣 Balde (~40 L)</label>
+        <input type="radio" name="modoLav" id="ml3" value="lavarapida" class="opt-i g"><label for="ml3" class="opt-l">🏪 Lava-rápido (~70 L)</label>
+      </div></div>
+  </div>
+  <div class="nav"><button class="btn btn-prev" onclick="goPrev()">← Voltar</button><button class="btn btn-next" onclick="goNext()">Próximo →</button></div>
+</div>
+
+<!-- ░░ E8 ░░ -->
+<div class="step" data-step="8">
+  <div class="step-head"><div class="step-icon ic-teal">🌿</div>
+    <div><span class="section-badge bd">USO DIRETO</span><h2>Espaço externo</h2><p>Horta, jardim e piscina variam muito entre estilos de vida</p></div></div>
+  <div class="field"><label>Você tem horta ou jardim que irriga?</label>
+    <div class="opts yn">
+      <input type="radio" name="temHorta" id="th1" value="sim" class="opt-i g"><label for="th1" class="opt-l">🌱 Sim</label>
+      <input type="radio" name="temHorta" id="th2" value="nao" class="opt-i" checked><label for="th2" class="opt-l">❌ Não</label>
+    </div></div>
+  <div id="hortaExtra" class="field" style="display:none"><label>Minutos de irrigação por dia</label>
+    <div class="sl-wrap"><input type="range" id="irrigacao" min="1" max="60" value="10" oninput="sv(this,'vIrr')"><span class="sl-val" id="vIrr">10</span></div>
+    <div class="hint">Mangueira de jardim: ~12 L/min</div></div>
+  <div class="field"><label>Você tem piscina?</label>
+    <div class="opts">
+      <input type="radio" name="temPisc" id="tp1" value="nao" class="opt-i g" checked><label for="tp1" class="opt-l">❌ Não</label>
+      <input type="radio" name="temPisc" id="tp2" value="pequena" class="opt-i a"><label for="tp2" class="opt-l">🏊 Inflável / pequena</label>
+      <input type="radio" name="temPisc" id="tp3" value="alvenaria" class="opt-i r"><label for="tp3" class="opt-l">🏊 Alvenaria / fibra</label>
+    </div>
+    <div class="hint">Piscina alvenaria ~30 m³: ~50.000 L/ano · ANA, 2017</div></div>
+  <div class="nav"><button class="btn btn-prev" onclick="goPrev()">← Voltar</button><button class="btn btn-next" onclick="goNext()">Próximo →</button></div>
+</div>
+
+<!-- ░░ E9 ░░ -->
+<div class="step" data-step="9">
+  <div class="step-head"><div class="step-icon ic-purple">👗</div>
+    <div><span class="section-badge bh">CONSUMO OCULTO</span><h2>Seu guarda-roupa</h2><p>Produzir cada peça exige grandes volumes de água</p></div></div>
+  <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.6;font-weight:600">Pense em quantas peças você tem no total, incluindo as que raramente usa.</p>
+  <div class="g2">
+    <div class="field"><label>🧥 Camisetas / blusas</label>
+      <div class="sl-wrap"><input type="range" id="nCamisetas" min="0" max="50" value="10" oninput="sv(this,'vCam')"><span class="sl-val" id="vCam">10</span></div>
+      <div class="hint">~2.700 L por camiseta de algodão</div></div>
+    <div class="field"><label>👖 Calças jeans</label>
+      <div class="sl-wrap"><input type="range" id="nJeans" min="0" max="20" value="3" oninput="sv(this,'vJeans')"><span class="sl-val" id="vJeans">3</span></div>
+      <div class="hint">~10.000 L por calça jeans</div></div>
+    <div class="field"><label>👗 Outras calças / bermudas</label>
+      <div class="sl-wrap"><input type="range" id="nCalcas" min="0" max="20" value="3" oninput="sv(this,'vCalc')"><span class="sl-val" id="vCalc">3</span></div>
+      <div class="hint">~3.800 L por peça</div></div>
+    <div class="field"><label>🧦 Pares de meias</label>
+      <div class="sl-wrap"><input type="range" id="nMeias" min="0" max="30" value="7" oninput="sv(this,'vMei')"><span class="sl-val" id="vMei">7</span></div>
+      <div class="hint">~800 L por par</div></div>
+    <div class="field"><label>👙 Roupas íntimas</label>
+      <div class="sl-wrap"><input type="range" id="nIntimas" min="0" max="30" value="7" oninput="sv(this,'vInt')"><span class="sl-val" id="vInt">7</span></div>
+      <div class="hint">~1.000 L por peça</div></div>
+    <div class="field"><label>🧥 Casacos / jaquetas</label>
+      <div class="sl-wrap"><input type="range" id="nCasacos" min="0" max="15" value="2" oninput="sv(this,'vCas')"><span class="sl-val" id="vCas">2</span></div>
+      <div class="hint">~7.000 L por peça</div></div>
+  </div>
+  <div class="hint">Chapagain et al., 2006 · Water Footprint Network, 2023</div>
+  <div class="nav"><button class="btn btn-prev" onclick="goPrev()">← Voltar</button><button class="btn btn-next" onclick="goNext()">Próximo →</button></div>
+</div>
+
+<!-- ░░ E10 ░░ -->
+<div class="step" data-step="10">
+  <div class="step-head"><div class="step-icon ic-amber">⚡</div>
+    <div><span class="section-badge bh">CONSUMO OCULTO</span><h2>Energia elétrica</h2><p>No Brasil, ~65% vem de hidrelétricas — cada kWh tem pegada hídrica</p></div></div>
+  <div class="field"><label>Tipo de residência</label>
+    <div class="opts">
+      <input type="radio" name="tipoRes" id="res1" value="quarto" class="opt-i g" checked><label for="res1" class="opt-l">🏠 Quarto / kitnet</label>
+      <input type="radio" name="tipoRes" id="res2" value="apto_p" class="opt-i"><label for="res2" class="opt-l">🏢 Apt. pequeno</label>
+      <input type="radio" name="tipoRes" id="res3" value="apto_m" class="opt-i"><label for="res3" class="opt-l">🏢 Apt. médio</label>
+      <input type="radio" name="tipoRes" id="res4" value="casa_p" class="opt-i"><label for="res4" class="opt-l">🏡 Casa pequena</label>
+      <input type="radio" name="tipoRes" id="res5" value="casa_m" class="opt-i a"><label for="res5" class="opt-l">🏡 Casa média</label>
+      <input type="radio" name="tipoRes" id="res6" value="casa_g" class="opt-i r"><label for="res6" class="opt-l">🏰 Casa grande</label>
+    </div></div>
+  <div class="field"><label>Aparelhos de ar-condicionado em uso</label>
+    <div class="sl-wrap"><input type="range" id="nAC" min="0" max="10" value="0" oninput="sv(this,'vAC')"><span class="sl-val" id="vAC">0</span></div>
+    <div class="hint">Split 12.000 BTU: ~1,3 kWh/h · uso médio 6h/dia</div></div>
+  <div class="field"><label>Possui freezer extra ou segunda geladeira?</label>
+    <div class="opts yn">
+      <input type="radio" name="temFreezer" id="fz1" value="sim" class="opt-i a"><label for="fz1" class="opt-l">✅ Sim</label>
+      <input type="radio" name="temFreezer" id="fz2" value="nao" class="opt-i g" checked><label for="fz2" class="opt-l">❌ Não</label>
+    </div></div>
+  <div class="hint">PROCEL, 2022 · Pegada hídrica da eletricidade hidráulica: ~17 L/kWh (Mekonnen et al., 2015)</div>
+  <div class="nav"><button class="btn btn-prev" onclick="goPrev()">← Voltar</button><button class="btn btn-next" onclick="goNext()">Próximo →</button></div>
+</div>
+
+<!-- ░░ E11 ░░ -->
+<div class="step" data-step="11">
+  <div class="step-head"><div class="step-icon ic-indigo">✈️</div>
+    <div><span class="section-badge bh">CONSUMO OCULTO</span><h2>Transporte</h2><p>Combustíveis e infraestrutura têm pegada hídrica significativa</p></div></div>
+  <div class="field"><label>Km de carro por semana (estimativa)</label>
+    <div class="opts">
+      <input type="radio" name="kmCarro" id="km0" value="0" class="opt-i g" checked><label for="km0" class="opt-l">🚶 Não uso carro</label>
+      <input type="radio" name="kmCarro" id="km1" value="50" class="opt-i"><label for="km1" class="opt-l">🚗 Até 50 km</label>
+      <input type="radio" name="kmCarro" id="km2" value="150" class="opt-i"><label for="km2" class="opt-l">🚗 50–200 km</label>
+      <input type="radio" name="kmCarro" id="km3" value="400" class="opt-i a"><label for="km3" class="opt-l">🚙 200–500 km</label>
+      <input type="radio" name="kmCarro" id="km4" value="800" class="opt-i r"><label for="km4" class="opt-l">🚙 Mais de 500 km</label>
+    </div>
+    <div class="hint">Gasolina: ~1.600 L água / L combustível · Chapagain & Hoekstra, 2004</div></div>
+  <div class="field"><label>Voos por ano (ida + volta = 2)</label>
+    <div class="opts">
+      <input type="radio" name="voos" id="v0" value="0" class="opt-i g" checked><label for="v0" class="opt-l">✈️ Nenhum</label>
+      <input type="radio" name="voos" id="v1" value="2" class="opt-i"><label for="v1" class="opt-l">✈️ 1–2</label>
+      <input type="radio" name="voos" id="v2" value="4" class="opt-i a"><label for="v2" class="opt-l">✈️ 3–5</label>
+      <input type="radio" name="voos" id="v3" value="8" class="opt-i r"><label for="v3" class="opt-l">✈️ Mais de 5</label>
+    </div>
+    <div class="hint">Querosene: ~2.000 L água / L combustível</div></div>
+  <div class="field"><label>Transporte urbano do dia a dia</label>
+    <div class="opts">
+      <input type="radio" name="transp" id="tp_p" value="pe" class="opt-i g" checked><label for="tp_p" class="opt-l">🚶 A pé / bicicleta</label>
+      <input type="radio" name="transp" id="tp_o" value="onibus" class="opt-i"><label for="tp_o" class="opt-l">🚌 Ônibus / metrô</label>
+      <input type="radio" name="transp" id="tp_c" value="carro" class="opt-i a"><label for="tp_c" class="opt-l">🚗 Carro próprio</label>
+      <input type="radio" name="transp" id="tp_u" value="uber" class="opt-i"><label for="tp_u" class="opt-l">📱 App (Uber, 99)</label>
+    </div></div>
+  <div class="nav"><button class="btn btn-prev" onclick="goPrev()">← Voltar</button><button class="btn btn-next" onclick="goNext()">Próximo →</button></div>
+</div>
+
+<!-- ░░ E12 ░░ -->
+<div class="step" data-step="12">
+  <div class="step-head"><div class="step-icon ic-brown">🛍️</div>
+    <div><span class="section-badge bh">CONSUMO OCULTO</span><h2>Consumo geral</h2><p>Eletrônicos, calçados e hábitos de compra</p></div></div>
+  <div class="g2">
+    <div class="field"><label>📱 Smartphones que você tem</label>
+      <div class="sl-wrap"><input type="range" id="nPhone" min="0" max="5" value="1" oninput="sv(this,'vPh')"><span class="sl-val" id="vPh">1</span></div>
+      <div class="hint">~12.700 L por smartphone</div></div>
+    <div class="field"><label>👟 Pares de calçados</label>
+      <div class="sl-wrap"><input type="range" id="nCalcados" min="0" max="30" value="4" oninput="sv(this,'vCalc2')"><span class="sl-val" id="vCalc2">4</span></div>
+      <div class="hint">~8.000 L por par de couro</div></div>
+  </div>
+  <div class="field"><label>Frequência de compra de roupas novas</label>
+    <div class="opts">
+      <input type="radio" name="compraRoupa" id="cr1" value="mensal" class="opt-i r" checked><label for="cr1" class="opt-l">🛍️ Todo mês</label>
+      <input type="radio" name="compraRoupa" id="cr2" value="trimestral" class="opt-i a"><label for="cr2" class="opt-l">🛒 A cada 3 meses</label>
+      <input type="radio" name="compraRoupa" id="cr3" value="semestral" class="opt-i"><label for="cr3" class="opt-l">🧺 A cada 6 meses</label>
+      <input type="radio" name="compraRoupa" id="cr4" value="anual" class="opt-i g"><label for="cr4" class="opt-l">✅ Uma vez por ano ou menos</label>
+    </div></div>
+  <div class="nav"><button class="btn btn-prev" onclick="goPrev()">← Voltar</button><button class="btn btn-next" onclick="goNext()">Próximo →</button></div>
+</div>
+
+<!-- ░░ E13 ░░ -->
+<div class="step" data-step="13">
+  <div class="step-head"><div class="step-icon ic-blue">✅</div>
+    <div><h2>Tudo pronto!</h2><p>Calcule sua pegada hídrica completa</p></div></div>
+  <p style="font-size:.88rem;color:var(--muted);line-height:1.75;margin-bottom:16px;font-weight:600">
+    O resultado mostrará <strong style="color:var(--ocean)">uso direto</strong> vs <strong style="color:var(--purple)">consumo oculto</strong>, sua posição no ranking global e recomendações personalizadas.
+  </p>
+  <div class="nav"><button class="btn btn-prev" onclick="goPrev()">← Voltar</button><button class="btn btn-calc" onclick="calcular()">💧 Ver minha pegada hídrica</button></div>
+</div>
+
+<!-- ░░ RESULTADO ░░ -->
+<div id="resultado">
+  <div class="res-hero">
+    <div class="rh-name" id="rNome"></div>
+    <div class="rh-num"><span class="num-fill" id="rTotal" data-text=""></span></div>
+    <div class="rh-unit">litros por ano</div>
+    <div class="rh-comp" id="rComp"></div>
+  </div>
+  <div style="text-align:center"><div class="nivel-pill" id="rNivel"></div></div>
+  <div class="blocks-row">
+    <div class="block-card block-direct"><div class="bc-icon">🚿</div><div class="bc-lbl">Uso Direto</div><div class="bc-val" id="bDireto"></div><div class="bc-sub">litros/ano</div></div>
+    <div class="block-card block-hidden"><div class="bc-icon">🔍</div><div class="bc-lbl">Consumo Oculto</div><div class="bc-val" id="bOculto"></div><div class="bc-sub">litros/ano</div></div>
+  </div>
+  <div class="ind-grid" id="rInds"></div>
+  <div class="res-card"><h3>📊 Distribuição por categoria</h3><div id="rBars"></div></div>
+  <div class="res-card">
+    <h3>🌍 Onde você está no mundo</h3>
+    <div class="gauge-wrap"><svg id="gaugesvg" viewBox="0 0 300 170" xmlns="http://www.w3.org/2000/svg"></svg><div class="gauge-lbl" id="gaugeLbl"></div></div>
+    <div style="margin:16px 0 12px"><div id="countryBars"></div></div>
+    <div class="map-wrap">
+      <svg id="worldmap" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="800" height="400" fill="#E0F2FE" rx="10"/>
+        <rect id="mr-na"      x="40"  y="40"  width="140" height="110" rx="10" fill="#ccc" opacity=".9"/>
+        <rect id="mr-sa"      x="120" y="165" width="100" height="110" rx="10" fill="#ccc" opacity=".9"/>
+        <rect id="mr-europe"  x="340" y="40"  width="90"  height="80"  rx="10" fill="#ccc" opacity=".9"/>
+        <rect id="mr-africa"  x="330" y="130" width="110" height="130" rx="10" fill="#ccc" opacity=".9"/>
+        <rect id="mr-asia"    x="440" y="40"  width="160" height="140" rx="10" fill="#ccc" opacity=".9"/>
+        <rect id="mr-oceania" x="580" y="200" width="100" height="80"  rx="10" fill="#ccc" opacity=".9"/>
+        <text x="110" y="100" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle">América do Norte</text>
+        <text x="170" y="228" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle">América do Sul</text>
+        <text x="385" y="84"  font-size="10" fill="#fff" font-weight="bold" text-anchor="middle">Europa</text>
+        <text x="385" y="200" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle">África</text>
+        <text x="520" y="114" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle">Ásia</text>
+        <text x="630" y="244" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle">Oceania</text>
+        <ellipse id="mr-brasil" cx="165" cy="220" rx="22" ry="18" fill="#FFB703"/>
+        <text x="165" y="224" font-size="9" fill="#fff" font-weight="bold" text-anchor="middle">BR</text>
+        <circle id="mr-voce" cx="0" cy="0" r="12" fill="#EF233C" stroke="#fff" stroke-width="2.5" opacity="0"/>
+        <text id="mr-voce-txt" x="0" y="0" font-size="8" fill="#fff" font-weight="bold" text-anchor="middle" opacity="0">Você</text>
+      </svg>
+    </div>
+  </div>
+  <div class="res-card"><h3>🌱 Recomendações para o seu perfil</h3><div id="rRecs"></div></div>
+  <button class="btn-metod" onclick="openModal()">📋 Ver metodologia e referências</button>
+  <button class="btn-refazer" onclick="reiniciar()">↩ Refazer</button>
+</div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal-box">
+    <div class="modal-head"><h2>METODOLOGIA</h2><button class="btn-close" onclick="closeModal()">✕</button></div>
+    <div class="metod-section"><h4>USO DIRETO</h4>
+      <div class="metod-row"><span>Chuveiro elétrico/gás</span><span>10 L/min</span></div>
+      <div class="metod-row"><span>Banho com balde</span><span>20 L/banho</span></div>
+      <div class="metod-row"><span>Descarga caixa acoplada</span><span>6,8 L/acion.</span></div>
+      <div class="metod-row"><span>Descarga caixa de parede</span><span>12 L/acion.</span></div>
+      <div class="metod-row"><span>Dual-flush</span><span>4 L/acion.</span></div>
+      <div class="metod-row"><span>Torneira aberta (escovação 2 min)</span><span>12 L/escov.</span></div>
+      <div class="metod-row"><span>Máquina de lavar</span><span>130 L/ciclo</span></div>
+      <div class="metod-row"><span>Tanquinho</span><span>80 L/ciclo</span></div>
+      <div class="metod-row"><span>Lavagem à mão</span><span>30 L/ciclo</span></div>
+      <div class="metod-row"><span>Lavagem veículo — mangueira</span><span>280 L</span></div>
+      <div class="metod-row"><span>Lavagem veículo — balde</span><span>40 L</span></div>
+      <div class="metod-row"><span>Irrigação jardim — mangueira</span><span>12 L/min</span></div>
+      <div class="metod-row"><span>Piscina alvenaria (~30 m³)</span><span>50.000 L/ano</span></div>
+    </div>
+    <div class="metod-section"><h4>CONSUMO OCULTO — Alimentação</h4>
+      <div class="metod-row"><span>Carne bovina/suína (200 g)</span><span>2.700 L/ref.</span></div>
+      <div class="metod-row"><span>Frango/peixe (200 g)</span><span>520 L/ref.</span></div>
+      <div class="metod-row"><span>Ovos / laticínios</span><span>200 L/ref.</span></div>
+      <div class="metod-row"><span>Vegetais / leguminosas (400 g)</span><span>200 L/ref.</span></div>
+    </div>
+    <div class="metod-section"><h4>CONSUMO OCULTO — Vestuário</h4>
+      <div class="metod-row"><span>Camiseta de algodão (250 g)</span><span>2.700 L</span></div>
+      <div class="metod-row"><span>Calça jeans (800 g algodão)</span><span>10.000 L</span></div>
+      <div class="metod-row"><span>Calça / bermuda (não jeans)</span><span>3.800 L</span></div>
+      <div class="metod-row"><span>Par de meias</span><span>800 L</span></div>
+      <div class="metod-row"><span>Roupa íntima</span><span>1.000 L</span></div>
+      <div class="metod-row"><span>Casaco / jaqueta</span><span>7.000 L</span></div>
+      <div class="metod-row"><span>Par de calçados (couro)</span><span>8.000 L</span></div>
+      <div class="metod-row"><span>Smartphone</span><span>12.700 L</span></div>
+    </div>
+    <div class="metod-section"><h4>CONSUMO OCULTO — Energia (Brasil)</h4>
+      <div class="metod-row"><span>Fator hidrelétrico</span><span>17 L/kWh</span></div>
+      <div class="metod-row"><span>Kitnet/quarto</span><span>~100 kWh/mês</span></div>
+      <div class="metod-row"><span>Apt. pequeno</span><span>~150 kWh/mês</span></div>
+      <div class="metod-row"><span>Apt. médio</span><span>~220 kWh/mês</span></div>
+      <div class="metod-row"><span>Casa pequena</span><span>~200 kWh/mês</span></div>
+      <div class="metod-row"><span>Casa média</span><span>~350 kWh/mês</span></div>
+      <div class="metod-row"><span>Casa grande</span><span>~600 kWh/mês</span></div>
+      <div class="metod-row"><span>Ar-condicionado split (6h/dia)</span><span>+80 kWh/mês</span></div>
+    </div>
+    <div class="metod-section"><h4>CONSUMO OCULTO — Transporte</h4>
+      <div class="metod-row"><span>Gasolina</span><span>1.600 L água/L</span></div>
+      <div class="metod-row"><span>Querosene de aviação</span><span>2.000 L água/L</span></div>
+      <div class="metod-row"><span>Consumo carro médio</span><span>10 km/L</span></div>
+    </div>
+    <div class="metod-section"><h4>MÉDIAS GLOBAIS (WFN, 2021)</h4>
+      <div class="metod-row"><span>🇺🇸 EUA</span><span>2.480 m³/hab/ano</span></div>
+      <div class="metod-row"><span>🇧🇷 Brasil</span><span>1.800 m³/hab/ano</span></div>
+      <div class="metod-row"><span>🇪🇺 Europa Ocidental</span><span>1.400 m³/hab/ano</span></div>
+      <div class="metod-row"><span>🇨🇳 China</span><span>1.070 m³/hab/ano</span></div>
+      <div class="metod-row"><span>🇮🇳 Índia</span><span>980 m³/hab/ano</span></div>
+      <div class="metod-row"><span>🌍 África Subsaariana</span><span>700 m³/hab/ano</span></div>
+    </div>
+    <div class="metod-section"><h4>Referências</h4>
+      <div class="ref-item">Mekonnen & Hoekstra (2011). Water footprint of crops. <em>HESS</em> 15. <a href="https://doi.org/10.5194/hess-15-1577-2011" target="_blank">DOI</a></div>
+      <div class="ref-item">Chapagain & Hoekstra (2004). Water footprints of nations. UNESCO-IHE.</div>
+      <div class="ref-item">Chapagain et al. (2006). Water footprint of cotton. <em>Ecol. Econ.</em> 60(1).</div>
+      <div class="ref-item">Water Footprint Network (2023). <a href="https://www.waterfootprint.org" target="_blank">waterfootprint.org</a></div>
+      <div class="ref-item">ANA (2017). Conjuntura dos Recursos Hídricos no Brasil. Brasília.</div>
+      <div class="ref-item">SNIS (2020). Diagnóstico dos Serviços de Água e Esgotos. MCID.</div>
+      <div class="ref-item">PROCEL/ELETROBRAS (2022). Pesquisa de Posse e Hábitos de Uso. Rio de Janeiro.</div>
+      <div class="ref-item">ABNT NBR 15097:2004.</div>
+    </div>
+  </div>
+</div>
+
+<footer>Conta-Gotas do Planeta · <a href="https://ernandes-sobreira.github.io" target="_blank">Ernandes Sobreira</a> · UNEMAT Cáceres-MT · 2026</footer>
+
+<script>
+// ══ CANVAS DROPS ══
+const canvas=document.getElementById('bgCanvas');
+const ctx=canvas.getContext('2d');
+let drops=[];
+function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight}
+resizeCanvas();window.addEventListener('resize',resizeCanvas);
+function spawnDrop(){
+  drops.push({x:Math.random()*canvas.width,y:-20,r:Math.random()*4+2,
+    speed:Math.random()*1.5+.5,alpha:Math.random()*.4+.1,
+    color:`hsl(${190+Math.random()*30},80%,${50+Math.random()*20}%)`});
+}
+function animDrops(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(Math.random()<.06)spawnDrop();
+  drops=drops.filter(d=>{
+    d.y+=d.speed;
+    ctx.save();ctx.globalAlpha=d.alpha;ctx.fillStyle=d.color;
+    ctx.beginPath();
+    // teardrop
+    ctx.moveTo(d.x,d.y-d.r*2);
+    ctx.bezierCurveTo(d.x+d.r,d.y-d.r,d.x+d.r,d.y,d.x,d.y+d.r);
+    ctx.bezierCurveTo(d.x-d.r,d.y,d.x-d.r,d.y-d.r,d.x,d.y-d.r*2);
+    ctx.fill();ctx.restore();
+    return d.y<canvas.height+30;
+  });
+  requestAnimationFrame(animDrops);
+}
+animDrops();
+
+// ══ HERO BUBBLES ══
+(function(){
+  const cont=document.getElementById('heroBubbles');
+  for(let i=0;i<18;i++){
+    const b=document.createElement('div');b.className='bubble';
+    const sz=Math.random()*60+20;
+    b.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;--dur:${Math.random()*6+5}s;--delay:${Math.random()*6}s;--drift:${(Math.random()-.5)*100}px`;
+    cont.appendChild(b);
+  }
+})();
+
+// ══ TICKER ══
+const FACTS=[
+  '💧 Uma calça jeans usa <em>10.000 L</em> de água para ser produzida',
+  '🥩 Um hambúrguer de 200g consome <em>2.700 L</em> de água virtual',
+  '🚿 Banho de 15 min usa <em>150 L</em> — o equivalente a 100 copos',
+  '👕 Uma camiseta de algodão precisa de <em>2.700 L</em> de água',
+  '🌍 <em>2 bilhões</em> de pessoas não têm acesso a água potável segura',
+  '⚡ Cada kWh de energia hidrelétrica consome <em>17 L</em> de água',
+  '✈️ Um voo doméstico por passageiro equivale a <em>400.000 L</em> de água virtual',
+  '📱 Seu smartphone usou <em>12.700 L</em> de água para ser fabricado',
+  '🌾 A agricultura usa <em>70%</em> de toda a água doce do planeta',
+  '🫙 Produzir 1 kg de café exige <em>140 L</em> de água',
+  '🥛 1 litro de leite precisa de <em>1.000 L</em> de água para ser produzido',
+  '🌱 Uma dieta vegana pode reduzir sua pegada hídrica em até <em>55%</em>',
+];
+const inner=document.getElementById('tickerInner');
+[...FACTS,...FACTS].forEach(f=>{
+  const s=document.createElement('span');s.innerHTML='• '+f+'&nbsp;&nbsp;&nbsp;';inner.appendChild(s);
+});
+
+// ══ RIPPLE ══
+document.addEventListener('click',function(e){
+  const btn=e.target.closest('.btn');if(!btn)return;
+  const r=document.createElement('span');r.className='ripple-drop';
+  const rect=btn.getBoundingClientRect();
+  const sz=Math.max(btn.offsetWidth,btn.offsetHeight);
+  r.style.cssText=`width:${sz}px;height:${sz}px;left:${e.clientX-rect.left-sz/2}px;top:${e.clientY-rect.top-sz/2}px`;
+  btn.appendChild(r);setTimeout(()=>r.remove(),700);
+});
+
+// ══ SLIDER COLOR ══
+function sv(el,vid){
+  document.getElementById(vid).textContent=el.value;
+  const pct=(el.value-el.min)/(el.max-el.min)*100;
+  el.style.setProperty('--pct',pct+'%');
+}
+
+// ══ PROGRESS ══
+let current=1;const TOTAL=13;
+function updateProg(){
+  const pct=Math.round(current/TOTAL*100);
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progLbl').textContent='Etapa '+current+' de '+TOTAL;
+  document.getElementById('progDrops').textContent='💧'.repeat(Math.ceil(current/2));
+}
+function showStep(n){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  const t=document.querySelector('.step[data-step="'+n+'"]');
+  if(t)t.classList.add('active');
+  updateProg();window.scrollTo({top:0,behavior:'smooth'});
+}
+function goNext(){if(current<TOTAL){current++;showStep(current)}}
+function goPrev(){if(current>1){current--;showStep(current)}}
+
+// ══ DYNAMIC SHOW/HIDE ══
+document.addEventListener('change',function(e){
+  if(e.target.name==='temVeic') document.getElementById('veicExtra').style.display=e.target.value==='sim'?'block':'none';
+  if(e.target.name==='temHorta') document.getElementById('hortaExtra').style.display=e.target.value==='sim'?'block':'none';
+  if(e.target.name==='tipoDesc') document.getElementById('fDescQtd').style.display=e.target.value==='fossa'?'none':'block';
+  if(e.target.name==='tipoBanho') document.getElementById('fBanhoMin').style.display=e.target.value==='chuveiro'?'block':'none';
+});
+
+function radio(n){const e=document.querySelector('input[name="'+n+'"]:checked');return e?e.value:null}
+function fmt(n){return n>=1000000?(n/1000000).toFixed(2)+' M':n>=1000?(n/1000).toFixed(1)+' mil':Math.round(n).toLocaleString('pt-BR')}
+
+// ══ CALC ══
+function calcular(){
+  const nome=document.getElementById('nome').value.trim()||'Participante';
+  const banhoMin=+document.getElementById('tempoBanho').value;
+  const tipoBanho=radio('tipoBanho');
+  const cBanho=tipoBanho==='chuveiro'?banhoMin*10*365:tipoBanho==='balde'?20*365:0;
+  const tipoDesc=radio('tipoDesc');
+  const lDesc=tipoDesc==='caixa'?6.8:tipoDesc==='parede'?12:tipoDesc==='dual'?4:0;
+  const cDesc=lDesc*(+document.getElementById('descarga').value)*365;
+  const cTorn=(radio('torneira')==='aberta'?12:1)*2*365;
+  const lRoupa=radio('tipoRoupa')==='maquina'?130:radio('tipoRoupa')==='tanquinho'?80:radio('tipoRoupa')==='mao'?30:50;
+  const ciclos=radio('freqRoupa')==='diario'?365:radio('freqRoupa')==='semanal'?52:26;
+  const cRoupa=lRoupa*ciclos;
+  const temVeic=radio('temVeic');
+  const lLav=radio('modoLav')==='mangueira'?280:radio('modoLav')==='balde'?40:70;
+  const cVeic=temVeic==='sim'?lLav*(+document.getElementById('veiculo').value)*12:0;
+  const temHorta=radio('temHorta');
+  const cHorta=temHorta==='sim'?(+document.getElementById('irrigacao').value)*12*365:0;
+  const cPisc=radio('temPisc')==='alvenaria'?50000:radio('temPisc')==='pequena'?3000:0;
+  const fReuso=radio('reuso')==='sim'?0.92:1.0;
+  const direto=Math.round((cBanho+cDesc+cTorn+cRoupa+cVeic+cHorta+cPisc)*fReuso);
+
+  const lCarne=radio('tipoCarne')==='bovina'?2700:radio('tipoCarne')==='frango'?520:radio('tipoCarne')==='ovos'?200:50;
+  const cCarne=(+document.getElementById('refeicoes').value)*lCarne*52;
+  const cVeg=(+document.getElementById('vegetais').value)*200*52;
+
+  const multCompra=radio('compraRoupa')==='mensal'?1.5:radio('compraRoupa')==='trimestral'?1.2:radio('compraRoupa')==='semestral'?1.0:0.8;
+  const cVest=Math.round(((+document.getElementById('nCamisetas').value)*2700/3+
+    (+document.getElementById('nJeans').value)*10000/3+
+    (+document.getElementById('nCalcas').value)*3800/3+
+    (+document.getElementById('nMeias').value)*800/3+
+    (+document.getElementById('nIntimas').value)*1000/3+
+    (+document.getElementById('nCasacos').value)*7000/3+
+    (+document.getElementById('nPhone').value)*12700/2+
+    (+document.getElementById('nCalcados').value)*8000/3)*multCompra);
+
+  const kwhBase=radio('tipoRes')==='quarto'?100:radio('tipoRes')==='apto_p'?150:radio('tipoRes')==='apto_m'?220:radio('tipoRes')==='casa_p'?200:radio('tipoRes')==='casa_m'?350:600;
+  const kwhAC=(+document.getElementById('nAC').value)*80;
+  const kwhFz=radio('temFreezer')==='sim'?40:0;
+  const cEnergia=Math.round((kwhBase+kwhAC+kwhFz)*12*17);
+
+  const kmCarro=+radio('kmCarro');
+  const cCarroAnual=Math.round((kmCarro/10)*1600*52);
+  const cVoo=Math.round((+radio('voos'))*300*2000);
+  const cTransp=cCarroAnual+cVoo;
+
+  const oculto=cCarne+cVeg+cVest+cEnergia+cTransp;
+  const total=direto+oculto;
+
+  const PAISES=[
+    {nome:'🇺🇸 EUA',val:2480000,cor:'#EF233C',reg:'na'},
+    {nome:'🇦🇺 Austrália',val:2200000,cor:'#E85D04',reg:'oceania'},
+    {nome:'🇧🇷 Brasil',val:1800000,cor:'#FFB703',reg:'sa'},
+    {nome:'🇦🇷 Argentina',val:1600000,cor:'#F9844A',reg:'sa'},
+    {nome:'🇪🇺 Europa Oc.',val:1400000,cor:'#4361EE',reg:'europe'},
+    {nome:'🇨🇳 China',val:1070000,cor:'#E63946',reg:'asia'},
+    {nome:'🇮🇳 Índia',val:980000,cor:'#2DC653',reg:'asia'},
+    {nome:'🌍 África Sub.',val:700000,cor:'#00B4D8',reg:'africa'},
+  ];
+
+  let nivel,nlClass,nlEmoji;
+  if(total<700000){nivel='Pegada baixa';nlClass='nl-baixo';nlEmoji='🟢'}
+  else if(total<1800000){nivel='Pegada média';nlClass='nl-medio';nlEmoji='🟡'}
+  else{nivel='Pegada alta';nlClass='nl-alto';nlEmoji='🔴'}
+
+  // hero
+  document.getElementById('rNome').textContent=nome+', sua pegada hídrica anual é:';
+  const numEl=document.getElementById('rTotal');
+  numEl.textContent=fmt(total);numEl.setAttribute('data-text',fmt(total));
+  document.getElementById('rComp').textContent='≈ '+(total/2500000).toFixed(3)+' piscinas olímpicas · '+Math.round(total/1.5).toLocaleString('pt-BR')+' garrafas de 1,5 L';
+  document.getElementById('rNivel').className='nivel-pill '+nlClass;
+  document.getElementById('rNivel').textContent=nlEmoji+' '+nivel;
+  document.getElementById('bDireto').textContent=fmt(direto);
+  document.getElementById('bOculto').textContent=fmt(oculto);
+
+  // animate fill
+  setTimeout(()=>numEl.style.setProperty('--fill-top','0%'),200);
+
+  // indicadores
+  document.getElementById('rInds').innerHTML=
+    ind('📅',fmt(total/365),'L por dia')+ind('🍽️',Math.round((cCarne+cVeg)/total*100)+'%','Alimentação')+
+    ind('👗',Math.round(cVest/total*100)+'%','Vestuário')+ind('⚡',Math.round(cEnergia/total*100)+'%','Energia')+
+    ind('✈️',Math.round(cTransp/total*100)+'%','Transporte')+ind('🚿',Math.round(direto/total*100)+'%','Uso direto');
+  function ind(ic,v,l){return'<div class="ind"><div class="i-icon">'+ic+'</div><div class="i-val">'+v+'</div><div class="i-lbl">'+l+'</div></div>'}
+
+  // barras
+  const CORES=['#0077B6','#00B4D8','#EF233C','#7B2FBE','#FFB703','#06D6A0','#4361EE','#F77F00','#2DC653','#E63946'];
+  const cats=[
+    {l:'🥩 Proteína animal',v:cCarne},{l:'🥦 Vegetais/grãos',v:cVeg},
+    {l:'👗 Vestuário',v:cVest},{l:'⚡ Energia',v:cEnergia},
+    {l:'✈️ Transporte',v:cTransp},{l:'🚿 Banho',v:cBanho},
+    {l:'🚽 Sanitário',v:cDesc+cTorn},{l:'👕 Lavanderia',v:cRoupa},
+    {l:'🚗 Veículos',v:cVeic},{l:'🌿 Externo',v:cHorta+cPisc},
+  ].filter(c=>c.v>0).sort((a,b)=>b.v-a.v);
+  const mV=cats[0]?cats[0].v:1;
+  document.getElementById('rBars').innerHTML=cats.map((c,i)=>
+    '<div class="bar-item"><div class="bar-lr"><span>'+c.l+'</span><span style="color:'+CORES[i]+'">'+fmt(c.v)+' L/ano</span></div>'+
+    '<div class="bar-track"><div class="bar-fill" style="width:'+(c.v/mV*100).toFixed(1)+'%;background:'+CORES[i]+'"></div></div></div>'
+  ).join('');
+
+  // gauge
+  drawGauge(total,PAISES);
+
+  // country bars
+  const all=[...PAISES,{nome:'📍 Você',val:total,cor:'#EF233C',isYou:true}].sort((a,b)=>b.val-a.val);
+  const mP=all[0].val;
+  document.getElementById('countryBars').innerHTML=all.map(p=>{
+    const pct=(p.val/mP*100).toFixed(1);
+    return'<div class="country-item">'+(p.isYou?'<div class="country-row you-row">':'<div class="country-row">')+
+      '<span class="country-flag">'+(p.isYou?'📍':'')+'</span>'+
+      '<span class="country-name">'+p.nome+'</span>'+
+      '<span class="country-val">'+fmt(p.val)+' L</span></div>'+
+      '<div class="country-track"><div class="country-bar" style="width:'+pct+'%;background:'+p.cor+'"></div></div></div>';
+  }).join('');
+
+  // mapa
+  colorMap(total,PAISES);
+
+  // recs
+  const recs=[];
+  if(tipoBanho==='chuveiro'&&banhoMin>8) recs.push({i:'🚿',t:'<strong>Banho mais curto:</strong> Reduzir de '+banhoMin+' para 5 min economizaria ~'+fmt((banhoMin-5)*10*365)+' L/ano.'});
+  if(radio('torneira')==='aberta') recs.push({i:'🚰',t:'<strong>Fechar a torneira:</strong> Economiza ~'+fmt(11*2*365)+' L/ano.'});
+  if(radio('tipoCarne')==='bovina'&&(+document.getElementById('refeicoes').value)>5) recs.push({i:'🥩',t:'<strong>Menos carne bovina:</strong> Substituir 3 refeições por frango ou feijão economizaria ~'+fmt(3*(2700-520)*52)+' L/ano.'});
+  if(radio('tipoRoupa')==='maquina'&&radio('freqRoupa')==='diario') recs.push({i:'👕',t:'<strong>Lavagem semanal:</strong> Mudar para semanal economizaria ~'+fmt(130*(365-52))+' L/ano.'});
+  if(cVest>500000) recs.push({i:'👗',t:'<strong>Guarda-roupa enxuto:</strong> Sua pegada têxtil é '+fmt(cVest)+' L/ano. Comprar menos e usar por mais tempo reduz drasticamente.'});
+  if(cEnergia>300000) recs.push({i:'⚡',t:'<strong>Eficiência energética:</strong> '+fmt(cEnergia)+' L/ano em energia. Painéis solares e aparelhos mais eficientes ajudam.'});
+  if(cTransp>200000) recs.push({i:'✈️',t:'<strong>Menos voos:</strong> Aviação é a categoria de transporte com maior pegada por km percorrido.'});
+  if(temVeic==='sim'&&radio('modoLav')==='mangueira') recs.push({i:'🚗',t:'<strong>Balde no lugar de mangueira:</strong> Economiza ~240 L por lavagem.'});
+  if(radio('reuso')==='nao') recs.push({i:'♻️',t:'<strong>Reúso de água cinza:</strong> Pode reduzir o uso direto em até 30%.'});
+  recs.push({i:'💧',t:'<strong>Água oculta:</strong> '+Math.round(oculto/total*100)+'% da sua pegada está invisível — alimentação, roupas, energia e transporte pesam mais do que qualquer torneira.'});
+  document.getElementById('rRecs').innerHTML=recs.map(r=>'<div class="rec-item"><div class="ri-icon">'+r.i+'</div><div class="ri-text">'+r.t+'</div></div>').join('');
+
+  document.getElementById('resultado').style.display='block';
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.querySelector('.prog-card').style.display='none';
+  setTimeout(()=>document.getElementById('resultado').scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+
+function drawGauge(total,paises){
+  const svg=document.getElementById('gaugesvg');
+  const cx=150,cy=145,r=110;
+  const minV=0,maxV=3000000;
+  const pct=Math.min((total-minV)/(maxV-minV),1);
+  const startA=Math.PI,endA=2*Math.PI;
+  function polar(a){return[cx+r*Math.cos(a),cy+r*Math.sin(a)]}
+  function arc(a1,a2,col,w){
+    const[x1,y1]=polar(a1);const[x2,y2]=polar(a2);
+    const lg=a2-a1>Math.PI?1:0;
+    return'<path d="M'+x1+' '+y1+' A '+r+' '+r+' 0 '+lg+' 1 '+x2+' '+y2+'" fill="none" stroke="'+col+'" stroke-width="'+(w||24)+'" stroke-linecap="butt"/>';
+  }
+  let html=arc(Math.PI,Math.PI+Math.PI/3,'#06D6A0')+arc(Math.PI+Math.PI/3,Math.PI+2*Math.PI/3,'#FFB703')+arc(Math.PI+2*Math.PI/3,2*Math.PI,'#EF233C');
+  // country marks
+  paises.forEach(p=>{
+    const pp=Math.min((p.val/maxV),1);
+    const a=Math.PI+pp*Math.PI;
+    const[x1,y1]=polar(a);
+    const ri=r-14,ro=r+2;
+    html+='<line x1="'+(cx+ri*Math.cos(a))+'" y1="'+(cy+ri*Math.sin(a))+'" x2="'+(cx+ro*Math.cos(a))+'" y2="'+(cy+ro*Math.sin(a))+'" stroke="rgba(255,255,255,.6)" stroke-width="1.5"/>';
+  });
+  // needle
+  const na=Math.PI+pct*Math.PI;
+  html+='<line x1="'+cx+'" y1="'+cy+'" x2="'+(cx+92*Math.cos(na))+'" y2="'+(cy+92*Math.sin(na))+'" stroke="#EF233C" stroke-width="3.5" stroke-linecap="round"/>';
+  html+='<circle cx="'+cx+'" cy="'+cy+'" r="9" fill="#EF233C"/><circle cx="'+cx+'" cy="'+cy+'" r="4" fill="#fff"/>';
+  // labels
+  [{p:0,t:'0'},{p:.5,t:'1,5M'},{p:1,t:'3M'}].forEach(d=>{
+    const a=Math.PI+d.p*Math.PI;
+    html+='<text x="'+(cx+130*Math.cos(a))+'" y="'+(cy+130*Math.sin(a)+4)+'" font-size="10" fill="#4A6080" font-weight="700" text-anchor="middle">'+d.t+'</text>';
+  });
+  html+='<text x="'+cx+'" y="'+(cy+28)+'" font-family="Bebas Neue,sans-serif" font-size="13" fill="#EF233C" letter-spacing="1" text-anchor="middle">VOCÊ</text>';
+  html+='<text x="'+cx+'" y="'+(cy+44)+'" font-size="11" fill="#0077B6" font-weight="700" text-anchor="middle">'+fmt(total)+' L</text>';
+  svg.innerHTML=html;
+  const sim=paises.reduce((a,b)=>Math.abs(a.val-total)<Math.abs(b.val-total)?a:b);
+  document.getElementById('gaugeLbl').textContent='Mais próximo de: '+sim.nome+' ('+fmt(sim.val)+' L/ano)';
+}
+
+function colorMap(total,paises){
+  const regions={africa:{val:700000},europe:{val:1400000},asia:{val:1025000},na:{val:2480000},sa:{val:1700000},oceania:{val:2200000}};
+  function vc(v){return v<800000?'#A7F3D0':v<1400000?'#FDE68A':v<2000000?'#FDBA74':'#FCA5A5'}
+  Object.entries(regions).forEach(([k,r])=>{const el=document.getElementById('mr-'+k);if(el)el.setAttribute('fill',vc(r.val))});
+  const sim=paises.reduce((a,b)=>Math.abs(a.val-total)<Math.abs(b.val-total)?a:b);
+  const pos={na:[110,95],sa:[170,218],europe:[385,82],africa:[385,198],asia:[520,112],oceania:[630,240]};
+  const[px,py]=pos[sim.reg]||[400,200];
+  const yv=document.getElementById('mr-voce'),yt=document.getElementById('mr-voce-txt');
+  yv.setAttribute('cx',px);yv.setAttribute('cy',py);yv.setAttribute('opacity','1');
+  yv.style.animation='pulse 1.5s ease-in-out infinite';
+  yt.setAttribute('x',px);yt.setAttribute('y',py+4);yt.setAttribute('opacity','1');
+  const style=document.createElement('style');
+  style.textContent='@keyframes pulse{0%,100%{r:12}50%{r:16}}';
+  document.head.appendChild(style);
+}
+
+function openModal(){document.getElementById('modalOverlay').classList.add('open')}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open')}
+function closeModalOutside(e){if(e.target===document.getElementById('modalOverlay'))closeModal()}
+function reiniciar(){
+  current=1;
+  document.getElementById('resultado').style.display='none';
+  document.getElementById('rTotal').style.setProperty('--fill-top','100%');
+  document.querySelector('.prog-card').style.display='flex';
+  showStep(1);
+}
+updateProg();
+// init slider fill
+document.querySelectorAll('input[type=range]').forEach(el=>{
+  const pct=(el.value-el.min)/(el.max-el.min)*100;
+  el.style.setProperty('--pct',pct+'%');
+});
+</script>
+</body>
+</html>
