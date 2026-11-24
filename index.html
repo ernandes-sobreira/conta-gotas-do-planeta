@@ -77,6 +77,8 @@ const $=id=>document.getElementById(id);
 const fmt=n=>Math.round(n).toLocaleString('pt-BR');
 const br=n=>String(n).replace('.',',');
 const SAB='Sabesp, dicas de economia de água';
+const MEK='Mekonnen, Gerbens-Leenes e Hoekstra (2015): eletricidade na América Latina e Caribe, 4.842 m³ por TJ, cerca de 17 L por kWh';
+const LKWH=17, TAR=0.83;
 const WFN='Hoekstra (2010), médias mundiais da Water Footprint Network';
 
 const Q=[
@@ -93,6 +95,18 @@ const Q=[
    {k:'desc',o:[['🚽','Caixa acoplada','6,8 L',6.8],['🔘','Válvula na parede','cerca de 12 L',12]]},
    {k:'nd',h:'Descargas por dia',o:[['','3','',3],['','5','',5],['','8','',8]]}],
   memo:'Bacia com caixa acoplada nova: até 6,8 L por descarga (ABNT NBR 15097). Válvula de parede aberta por 6 segundos: de 10 a 14 L, usamos 12 L. Fonte: '+SAB+'.'},
+
+ {ico:'⚡',t:'Sua conta de luz',g:[
+   {k:'pes',h:'Pessoas na casa',o:[['','1','',1],['','2','',2],['','3 ou 4','',3.5],['','5 ou mais','',5]]},
+   {k:'kwh',h:'Consumo no mês (olhe o kWh na conta)',o:[['','Até 100 kWh','até R$ 83',80],['','100 a 200','R$ 83 a 166',150],['','200 a 350','R$ 166 a 290',275],['','Mais de 350','mais de R$ 290',450]]}],
+  memo:'Gerar eletricidade gasta água: evaporação nos lagos das hidrelétricas e resfriamento das térmicas. Na América Latina e Caribe a média é de 4.842 m³ por TJ, cerca de 17 L por kWh (Mekonnen et al., 2015). A conta da casa é dividida pelas pessoas. Os valores em reais usam R$ 0,83 por kWh, que varia de estado para estado.'},
+ {ico:'❄️',t:'Ar-condicionado e ventilador',g:[
+   {k:'ar',h:'Horas de ar-condicionado por dia',o:[['','Não uso','',0],['','2 h','',2],['','4 h','',4],['','8 h ou mais','',8]]},
+   {k:'vent',h:'Horas de ventilador por dia',o:[['','Não uso','',0],['','4 h','',4],['','8 h','',8],['','12 h ou mais','',12]]}],
+  memo:'Pela tabela de consumo do Procel, um split de até 10.000 BTU gasta cerca de 4,74 kWh em 8 horas, ou 0,59 kWh por hora. Um ventilador gasta cerca de 0,07 kWh por hora. Cada kWh carrega cerca de 17 L de água (Mekonnen et al., 2015). Esse gasto já faz parte da sua conta de luz.'},
+ {ico:'🤖',t:'Perguntas para inteligência artificial',g:[
+   {k:'ia',h:'Por dia (ChatGPT, Gemini e outras)',o:[['','Nenhuma','',0],['','Umas 10','',10],['','Umas 30','',30],['','100 ou mais','',100]]}],
+  memo:'O Google mediu um pedido de texto típico ao Gemini: 0,26 mL de água para resfriar o centro de dados e 0,24 Wh de energia. Essa energia, a 17 L por kWh, soma mais cerca de 4 mL. Total: cerca de 4,3 mL por pergunta. Imagens e vídeos gastam mais, mas ainda não há média publicada.'},
  {ico:'🥩',t:'Carne de boi na semana',h:true,g:[
    {k:'boi',o:[['🥗','Quase nunca','',0],['🍽️','1 ou 2 vezes','',1.5],['🍖','3 a 5 vezes','',4],['🥩','Todo dia','',7]]}],
   memo:'Uma porção de 200 g de carne bovina = 0,2 kg × 15.500 L/kg = 3.100 L. É a água da chuva e da irrigação que fez crescer o pasto e a ração, mais a água que o boi bebe. Fonte: '+WFN+'.'},
@@ -117,6 +131,9 @@ function calc(){
     {e:'🚿',n:'Banho',d:true,v:g('chuv')*g('min')*g('nb'),m:`${g('min')} min × ${br(g('chuv'))} L/min × ${g('nb')} banho(s) = ${fmt(g('chuv')*g('min')*g('nb'))} L por dia. Fonte: ${SAB}.`},
     {e:'🪥',n:'Escovar os dentes',d:true,v:g('torn')*g('esc'),m:`${br(g('torn'))} L × ${g('esc')} vez(es) = ${br(+(g('torn')*g('esc')).toFixed(1))} L por dia. Fonte: ${SAB}.`},
     {e:'🚽',n:'Descarga',d:true,v:g('desc')*g('nd'),m:`${br(g('desc'))} L × ${g('nd')} descargas = ${fmt(g('desc')*g('nd'))} L por dia. Fontes: ABNT NBR 15097 e ${SAB}.`},
+    (()=>{const casa=g('kwh')/g('pes')||0,clima=(g('ar')*0.59+g('vent')*0.07)*30,k=Math.max(casa,clima);
+      return {e:'⚡',n:'Energia elétrica',v:k*LKWH/30,m:`${fmt(g('kwh'))} kWh por mês ÷ ${br(g('pes'))} pessoa(s) = ${fmt(casa)} kWh. Disso, ar-condicionado e ventilador são cerca de ${fmt(clima)} kWh. ${fmt(k)} kWh × 17 L ÷ 30 dias = ${fmt(k*LKWH/30)} L por dia. Fonte: ${MEK}.`};})(),
+    {e:'🤖',n:'Inteligência artificial',v:g('ia')*0.00434,m:`${g('ia')} pergunta(s) × 4,3 mL = ${br((g('ia')*4.34/1000).toFixed(2))} L por dia. Fontes: Google (2025), relatório sobre o Gemini, e ${MEK}.`},
     {e:'🥩',n:'Carne de boi',v:g('boi')*3100/7,m:`${br(g('boi'))} porção(ões) por semana × 3.100 L ÷ 7 dias = ${fmt(g('boi')*3100/7)} L por dia. Fonte: ${WFN}.`},
     {e:'🍗',n:'Frango',v:g('frango')*780/7,m:`${br(g('frango'))} porção(ões) por semana × 780 L ÷ 7 dias = ${fmt(g('frango')*780/7)} L por dia. Fonte: ${WFN}.`},
     {e:'☕',n:'Café e leite',v:g('cafe')*140+g('leite')*200,m:`${br(g('cafe'))} xícara(s) × 140 L + ${g('leite')} copo(s) × 200 L = ${fmt(g('cafe')*140+g('leite')*200)} L por dia. Fonte: ${WFN}.`},
@@ -156,17 +173,21 @@ function resultado(){
     'Roupas e sapatos':'Usar a roupa por mais tempo é o jeito mais fácil de reduzir essa parte.',
     'Descarga':'Uma caixa acoplada gasta cerca da metade de uma válvula de parede.',
     'Escovar os dentes':'Fechar a torneira derruba esse gasto para quase zero.',
-    'Frango':'Feijão, arroz e ovos também reduzem a água escondida da refeição.'};
+    'Frango':'Feijão, arroz e ovos também reduzem a água escondida da refeição.',
+    'Energia elétrica':'Trocar o ar-condicionado pelo ventilador corta cerca de 90% da energia do aparelho, e a água vai junto.',
+    'Inteligência artificial':'Cada pergunta gasta pouco, mas bilhões de perguntas por dia pesam onde ficam os centros de dados.'};
   $('main').innerHTML=`<div class="q">
     <div class="big"><b>${fmt(t)}</b><small>litros de água por dia</small></div>
-    <div class="eq">${'🪣'.repeat(Math.min(baldes,60))}${baldes>60?' …':''}</div>
+    <div class="eq">${'🪣'.repeat(Math.min(baldes,40))}${baldes>40?' …':''}</div>
     <div class="eqt">= ${fmt(baldes)} baldes de 20 litros, todo dia</div>
     <div class="split"><i style="width:${t?dir/t*100:0}%;background:#0284c7"></i><i style="width:${t?hid/t*100:0}%;background:#7c3aed"></i></div>
     <div class="leg"><span style="color:#0369a1">💧 Você vê: ${fmt(dir)} L</span><span style="color:#7c3aed">🔍 Escondida: ${fmt(hid)} L</span></div>
     <div style="margin-top:12px;text-align:left">${r.map((x,i)=>`<div class="row"><span class="e">${x.e}</span><div><div class="n">${x.n}</div><div class="bar"><i style="width:${x.v/mx*100}%;background:${x.d?'#0284c7':'#7c3aed'}"></i></div></div>
-      <span class="v">${fmt(x.v)} L</span><button class="help" onclick="toggle('m${i}')" aria-label="Memória de cálculo">?</button></div><div class="memo" id="m${i}">${x.m}</div>`).join('')}
-      <div class="row"><span class="e">🌍</span><div class="n">E o resto?</div><span></span><button class="help" onclick="toggle('mr')" aria-label="Explicação">?</button></div>
-      <div class="memo" id="mr">Esta conta mostra só alguns itens. A pegada hídrica completa de uma pessoa no Brasil é de cerca de 2.027 m³ por ano, ou 5.550 L por dia (Mekonnen e Hoekstra, 2011). A média mundial é de 1.385 m³ por ano, cerca de 3.800 L por dia (Hoekstra e Mekonnen, 2012, PNAS).</div></div>
+      <span class="v">${x.v>0&&x.v<1?br(x.v.toFixed(2)):fmt(x.v)} L</span><button class="help" onclick="toggle('m${i}')" aria-label="Memória de cálculo">?</button></div><div class="memo" id="m${i}">${x.m}</div>`).join('')}</div>
+    <h3 style="margin:16px 0 6px;font-size:1rem;color:#0c4a6e;display:flex;align-items:center;justify-content:center;gap:8px">🌍 Você e o mundo<button class="help" onclick="toggle('mw')" aria-label="Explicação">?</button></h3>
+    <div class="memo" id="mw">Pegada hídrica completa por pessoa, em litros por dia: média de 1996 a 2005, convertida de m³ por ano. Mundo 1.385, EUA 2.842, China 1.071 e Índia 1.089 m³ por ano (Hoekstra e Mekonnen, 2012, PNAS). Brasil 2.027 m³ por ano (Mekonnen e Hoekstra, 2011). Esses números incluem tudo o que um país consome. A sua conta aqui inclui só alguns itens, então a sua barra é um piso.</div>
+    ${(()=>{const W=[['📍 Você (parte)',t,'#ef4444'],['🇺🇸 EUA',2842e3/365,'#94a3b8'],['🇧🇷 Brasil',2027e3/365,'#22c55e'],['🌍 Mundo',1385e3/365,'#0284c7'],['🇮🇳 Índia',1089e3/365,'#94a3b8'],['🇨🇳 China',1071e3/365,'#94a3b8']].sort((a,b)=>b[1]-a[1]);
+      const m=W[0][1];return W.map(w=>`<div style="display:grid;grid-template-columns:120px 1fr 62px;gap:8px;align-items:center;margin:5px 0;text-align:left"><span style="font-weight:700;font-size:.88rem">${w[0]}</span><div style="height:12px;background:#eef6fb;border-radius:6px;overflow:hidden"><i style="display:block;height:100%;width:${w[1]/m*100}%;background:${w[2]};border-radius:6px"></i></div><span style="font-weight:800;font-size:.88rem;text-align:right">${fmt(w[1])} L</span></div>`).join('');})()}
     <div class="tip">💡 Seu maior gasto: <b>${top.n}</b>. ${dicas[top.n]}</div>
     <div class="nav"><button class="btn ghost" id="bV">Voltar</button><button class="btn" id="bR">Refazer</button></div></div>`;
   $('bV').onclick=()=>{step--;render();};$('bR').onclick=()=>{Object.keys(A).forEach(k=>A[k]=null);step=0;render();};
